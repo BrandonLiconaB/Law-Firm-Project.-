@@ -1,15 +1,8 @@
-import styles from './App.module.css'
+import { RouterProvider } from 'react-router/dom'
+import { router } from '../routes/router.jsx'
 
 function App() {
-  return (
-    <main className={styles.container}>
-      <section className={styles.card}>
-        <p className={styles.eyebrow}>Manuel Diaz</p>
-        <h1>Matter Document Tracker</h1>
-        <p>La estructura inicial del frontend está lista.</p>
-      </section>
-    </main>
-  )
+  return <RouterProvider router={router} />
 }
 
 export default App

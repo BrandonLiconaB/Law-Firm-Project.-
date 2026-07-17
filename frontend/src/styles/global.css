@@ -5,10 +5,16 @@ body {
   font-family: var(--font-family-base);
   color: var(--color-text);
   background: var(--color-background);
+  line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
 
 #root {
   min-height: 100vh;
+}
+
+:focus-visible {
+  outline: 3px solid rgb(39 110 241 / 28%);
+  outline-offset: 2px;
 }

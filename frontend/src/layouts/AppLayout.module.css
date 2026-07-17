@@ -1,0 +1,250 @@
+.appShell {
+  min-height: 100vh;
+}
+
+.sidebar {
+  position: fixed;
+  inset: 0 auto 0 0;
+  z-index: 30;
+  width: var(--sidebar-width);
+  display: flex;
+  flex-direction: column;
+  padding: 24px 18px;
+  color: #dce6f3;
+  background: var(--color-brand-950);
+}
+
+.brand,
+.mobileBrand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.brand {
+  min-height: 48px;
+  padding-inline: 8px;
+}
+
+.brandMark {
+  width: 38px;
+  height: 38px;
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  color: #ffffff;
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  background: var(--color-accent);
+  border-radius: 10px;
+}
+
+.brand div,
+.accountDetails {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.brand strong {
+  color: #ffffff;
+  font-size: 0.925rem;
+}
+
+.brand div span {
+  color: #92a5be;
+  font-size: 0.75rem;
+}
+
+.navigation {
+  flex: 1;
+  overflow-y: auto;
+  padding-block: 32px;
+}
+
+.navGroup + .navGroup {
+  margin-top: 28px;
+}
+
+.navLabel {
+  margin: 0 10px 8px;
+  color: #8296b0;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.navLink {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 44px;
+  padding: 8px 10px;
+  color: #bdcada;
+  font-size: 0.9rem;
+  font-weight: 600;
+  border-radius: var(--border-radius-medium);
+  transition:
+    color 160ms ease,
+    background-color 160ms ease;
+}
+
+.navLink:hover {
+  color: #ffffff;
+  background: rgb(255 255 255 / 7%);
+}
+
+.navLinkActive {
+  color: #ffffff;
+  background: var(--color-brand-800);
+}
+
+.navIcon {
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  color: #b9c8da;
+  font-size: 0.625rem;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  background: rgb(255 255 255 / 8%);
+  border-radius: 8px;
+}
+
+.navLinkActive .navIcon {
+  color: #ffffff;
+  background: var(--color-accent);
+}
+
+.account {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 10px 2px;
+  border-top: 1px solid rgb(255 255 255 / 10%);
+}
+
+.accountAvatar {
+  width: 36px;
+  height: 36px;
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  color: var(--color-brand-950);
+  font-size: 0.6875rem;
+  font-weight: 800;
+  background: #dce6f3;
+  border-radius: 50%;
+}
+
+.accountDetails strong,
+.accountDetails span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.accountDetails strong {
+  color: #ffffff;
+  font-size: 0.8125rem;
+}
+
+.accountDetails span {
+  color: #92a5be;
+  font-size: 0.6875rem;
+}
+
+.mainContent {
+  min-height: 100vh;
+  margin-left: var(--sidebar-width);
+}
+
+.contentContainer {
+  width: min(100%, var(--content-max-width));
+  margin-inline: auto;
+  padding: 40px;
+}
+
+.mobileHeader,
+.backdrop {
+  display: none;
+}
+
+@media (max-width: 960px) {
+  .mobileHeader {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    min-height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 18px;
+    color: var(--color-text);
+    background: rgb(255 255 255 / 96%);
+    border-bottom: 1px solid var(--color-border);
+    backdrop-filter: blur(12px);
+  }
+
+  .mobileBrand {
+    font-size: 0.9rem;
+    font-weight: 700;
+  }
+
+  .mobileBrand .brandMark {
+    width: 34px;
+    height: 34px;
+  }
+
+  .menuButton {
+    width: 42px;
+    height: 42px;
+    display: grid;
+    place-items: center;
+    color: var(--color-text);
+    font-size: 1.35rem;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius-medium);
+  }
+
+  .sidebar {
+    transform: translateX(-100%);
+    box-shadow: var(--shadow-medium);
+    transition: transform 200ms ease;
+  }
+
+  .sidebarOpen {
+    transform: translateX(0);
+  }
+
+  .backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 25;
+    display: block;
+    background: rgb(15 23 42 / 46%);
+    border: 0;
+  }
+
+  .mainContent {
+    margin-left: 0;
+  }
+
+  .contentContainer {
+    padding: 28px 20px 40px;
+  }
+}
+
+@media (max-width: 520px) {
+  .sidebar {
+    width: min(86vw, 300px);
+  }
+
+  .contentContainer {
+    padding-inline: 16px;
+  }
+}

@@ -1,0 +1,67 @@
+.badge {
+  width: fit-content;
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 4px 9px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1.25;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.pending {
+  color: #9a3412;
+  background: #fff7ed;
+  border-color: #fed7aa;
+}
+
+.readyStart {
+  color: #1d4ed8;
+  background: #eff6ff;
+  border-color: #bfdbfe;
+}
+
+.ready {
+  color: #075985;
+  background: #ecfeff;
+  border-color: #a5f3fc;
+}
+
+.review {
+  color: #5b21b6;
+  background: #f5f3ff;
+  border-color: #ddd6fe;
+}
+
+.correctionsPending {
+  color: #b42318;
+  background: #fef3f2;
+  border-color: #fecdca;
+}
+
+.correctionsReady {
+  color: #9333ea;
+  background: #faf5ff;
+  border-color: #e9d5ff;
+}
+
+.accepted {
+  color: #18794e;
+  background: #ecfdf3;
+  border-color: #abefc6;
+}
+
+.sent {
+  color: #344054;
+  background: #f2f4f7;
+  border-color: #d0d5dd;
+}
+
+.neutral {
+  color: #344054;
+  background: #f8fafc;
+  border-color: #e2e8f0;
+}

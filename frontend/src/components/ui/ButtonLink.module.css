@@ -1,0 +1,27 @@
+.button {
+  min-height: 42px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 9px 16px;
+  color: #ffffff;
+  font-size: 0.875rem;
+  font-weight: 700;
+  background: var(--color-accent);
+  border: 1px solid var(--color-accent);
+  border-radius: var(--border-radius-medium);
+  box-shadow: var(--shadow-small);
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease,
+    transform 160ms ease;
+}
+
+.button:hover {
+  background: var(--color-accent-hover);
+  border-color: var(--color-accent-hover);
+}
+
+.button:active {
+  transform: translateY(1px);
+}
