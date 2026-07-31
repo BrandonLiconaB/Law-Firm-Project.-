@@ -4,7 +4,7 @@ import MatterForm from '../components/MatterForm.jsx'
 import styles from './NewMatterPage.module.css'
 
 function NewMatterPage() {
-  const { matters, createMatter } = useAppData()
+  const { matterTypes, matters, createMatter } = useAppData()
   const navigate = useNavigate()
 
   function handleCreateMatter(matterData) {
@@ -29,6 +29,7 @@ function NewMatterPage() {
       </p>
 
       <MatterForm
+        matterTypes={matterTypes}
         matters={matters}
         onSubmit={handleCreateMatter}
       />

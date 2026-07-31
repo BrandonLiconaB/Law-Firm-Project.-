@@ -15,14 +15,14 @@ function formatDate(date) {
 }
 
 function MattersPage() {
-  const { matters } = useAppData()
+  const { matterTypes, matters } = useAppData()
   const [search, setSearch] = useState('')
   const [status, setStatus] = useState('')
-  const [matterType, setMatterType] = useState('')
+  const [matterTypeId, setMatterTypeId] = useState('')
 
-  const matterTypeOptions = useMemo(
-    () => [...new Set(matters.map((matter) => matter.matterType))],
-    [matters],
+  const matterTypesById = useMemo(
+    () => new Map(matterTypes.map((matterType) => [matterType.id, matterType])),
+    [matterTypes],
   )
 
   const filteredMatters = useMemo(() => {
@@ -33,18 +33,20 @@ function MattersPage() {
         normalizedSearch.length === 0 ||
         matter.matterName.toLowerCase().includes(normalizedSearch)
       const matchesStatus = status.length === 0 || matter.status === status
-      const matchesType = matterType.length === 0 || matter.matterType === matterType
+      const matchesType =
+        matterTypeId.length === 0 || matter.matterTypeId === matterTypeId
 
       return matchesSearch && matchesStatus && matchesType
     })
-  }, [matterType, matters, search, status])
+  }, [matterTypeId, matters, search, status])
 
-  const hasFilters = search.length > 0 || status.length > 0 || matterType.length > 0
+  const hasFilters =
+    search.length > 0 || status.length > 0 || matterTypeId.length > 0
 
   function clearFilters() {
     setSearch('')
     setStatus('')
-    setMatterType('')
+    setMatterTypeId('')
   }
 
   return (
@@ -92,13 +94,13 @@ function MattersPage() {
           <label htmlFor="type-filter">Matter type</label>
           <select
             id="type-filter"
-            value={matterType}
-            onChange={(event) => setMatterType(event.target.value)}
+            value={matterTypeId}
+            onChange={(event) => setMatterTypeId(event.target.value)}
           >
             <option value="">All matter types</option>
-            {matterTypeOptions.map((option) => (
-              <option key={option} value={option}>
-                {option}
+            {matterTypes.map((matterType) => (
+              <option key={matterType.id} value={matterType.id}>
+                {matterType.name}
               </option>
             ))}
           </select>
@@ -139,7 +141,10 @@ function MattersPage() {
                         {matter.matterName}
                       </Link>
                     </td>
-                    <td>{matter.matterType}</td>
+                    <td>
+                      {matterTypesById.get(matter.matterTypeId)?.name ??
+                        'Unknown matter type'}
+                    </td>
                     <td>
                       <StatusBadge status={matter.status} />
                     </td>
@@ -170,7 +175,10 @@ function MattersPage() {
                 <dl className={styles.cardDetails}>
                   <div>
                     <dt>Matter type</dt>
-                    <dd>{matter.matterType}</dd>
+                    <dd>
+                      {matterTypesById.get(matter.matterTypeId)?.name ??
+                        'Unknown matter type'}
+                    </dd>
                   </div>
                   <div>
                     <dt>Last updated</dt>

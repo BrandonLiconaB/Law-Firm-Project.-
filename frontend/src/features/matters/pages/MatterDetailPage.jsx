@@ -20,7 +20,13 @@ function formatDateTime(dateTime) {
   }).format(new Date(dateTime))
 }
 
-function MatterDetail({ matter, matterRecord, notice, onSave }) {
+function MatterDetail({
+  matter,
+  matterRecord,
+  matterTypeName,
+  notice,
+  onSave,
+}) {
   const [documents, setDocuments] = useState(() =>
     matterRecord.documents.map((document) => ({ ...document })),
   )
@@ -141,7 +147,7 @@ function MatterDetail({ matter, matterRecord, notice, onSave }) {
         <div>
           <p className={styles.eyebrow}>Matter record</p>
           <h1>{matter.matterName}</h1>
-          <p className={styles.matterType}>{matter.matterType}</p>
+          <p className={styles.matterType}>{matterTypeName}</p>
         </div>
 
         <Button disabled={!hasUnsavedChanges} onClick={handleSave}>
@@ -255,9 +261,12 @@ function MatterDetail({ matter, matterRecord, notice, onSave }) {
 function MatterDetailPage() {
   const { matterId } = useParams()
   const location = useLocation()
-  const { matterRecords, matters, saveMatterChanges } = useAppData()
+  const { matterRecords, matterTypes, matters, saveMatterChanges } = useAppData()
   const matter = matters.find((item) => item.id === matterId)
   const matterRecord = matterRecords[matterId]
+  const matterType = matterTypes.find(
+    (currentMatterType) => currentMatterType.id === matter?.matterTypeId,
+  )
 
   if (!matter || !matterRecord) {
     return (
@@ -274,6 +283,7 @@ function MatterDetailPage() {
       key={matter.id}
       matter={matter}
       matterRecord={matterRecord}
+      matterTypeName={matterType?.name ?? 'Unknown matter type'}
       notice={location.state?.notice}
       onSave={(changes) => saveMatterChanges(matter.id, changes)}
     />

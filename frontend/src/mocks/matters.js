@@ -2,7 +2,7 @@ export const matters = [
   {
     id: 'matter-001',
     matterName: 'Torres, Elena (402424)',
-    matterType: 'Family Petition',
+    matterTypeId: 'family-petition',
     status: 'Pending Documents',
     statusSource: 'Automatic',
     statusUpdatedAt: '2026-07-15T14:30:00',
@@ -11,7 +11,7 @@ export const matters = [
   {
     id: 'matter-002',
     matterName: 'Johnson, Marcus (402419)',
-    matterType: 'Citizenship',
+    matterTypeId: 'citizenship',
     status: 'Ready to Start Drafting',
     statusSource: 'Automatic',
     statusUpdatedAt: '2026-07-15T14:30:00',
@@ -20,7 +20,7 @@ export const matters = [
   {
     id: 'matter-003',
     matterName: 'Hernandez, Isabel (402407)',
-    matterType: 'Adjustment of Status',
+    matterTypeId: 'adjustment-of-status',
     status: 'Ready to Draft',
     statusSource: 'Automatic',
     statusUpdatedAt: '2026-07-14T14:30:00',
@@ -29,7 +29,7 @@ export const matters = [
   {
     id: 'matter-004',
     matterName: 'Lee, David (402398)',
-    matterType: 'Work Authorization',
+    matterTypeId: 'work-authorization',
     status: 'Ready to R/S',
     statusSource: 'Manual',
     statusUpdatedAt: '2026-07-13T14:30:00',
@@ -38,7 +38,7 @@ export const matters = [
   {
     id: 'matter-005',
     matterName: 'Rivera, Camila (402387)',
-    matterType: 'Family Petition',
+    matterTypeId: 'family-petition',
     status: 'Pending Corrections',
     statusSource: 'Manual',
     statusUpdatedAt: '2026-07-12T14:30:00',
@@ -47,7 +47,7 @@ export const matters = [
   {
     id: 'matter-006',
     matterName: 'Williams, Noah (402376)',
-    matterType: 'Citizenship',
+    matterTypeId: 'citizenship',
     status: 'Corrections Ready',
     statusSource: 'Manual',
     statusUpdatedAt: '2026-07-11T14:30:00',
@@ -56,7 +56,7 @@ export const matters = [
   {
     id: 'matter-007',
     matterName: 'Martinez, Ana (402361)',
-    matterType: 'Adjustment of Status',
+    matterTypeId: 'adjustment-of-status',
     status: 'Accepted',
     statusSource: 'Manual',
     statusUpdatedAt: '2026-07-10T14:30:00',
@@ -65,7 +65,7 @@ export const matters = [
   {
     id: 'matter-008',
     matterName: 'Wilson, James (402342)',
-    matterType: 'Work Authorization',
+    matterTypeId: 'work-authorization',
     status: 'Sent',
     statusSource: 'Manual',
     statusUpdatedAt: '2026-07-09T14:30:00',

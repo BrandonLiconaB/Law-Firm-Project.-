@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import Button from '../../../components/ui/Button.jsx'
 import ButtonLink from '../../../components/ui/ButtonLink.jsx'
-import { matterTypes } from '../../../mocks/matterTypes.js'
 import {
   cleanMatterName,
   isMatterNameDuplicate,
@@ -9,7 +8,7 @@ import {
 import DocumentTemplatePreview from './DocumentTemplatePreview.jsx'
 import styles from './MatterForm.module.css'
 
-function MatterForm({ matters, onSubmit }) {
+function MatterForm({ matterTypes, matters, onSubmit }) {
   const [matterName, setMatterName] = useState('')
   const [matterTypeId, setMatterTypeId] = useState('')
   const [errors, setErrors] = useState({})
@@ -46,6 +45,9 @@ function MatterForm({ matters, onSubmit }) {
       nextErrors.matterTypeId = 'Select a matter type.'
     } else if (!selectedMatterType) {
       nextErrors.matterTypeId = 'The selected matter type is not available.'
+    } else if (selectedMatterType.documents.length === 0) {
+      nextErrors.matterTypeId =
+        'Add documents to this matter type before using it.'
     }
 
     if (Object.keys(nextErrors).length > 0) {
@@ -115,8 +117,15 @@ function MatterForm({ matters, onSubmit }) {
               >
                 <option value="">Select a matter type</option>
                 {matterTypes.map((matterType) => (
-                  <option key={matterType.id} value={matterType.id}>
+                  <option
+                    key={matterType.id}
+                    value={matterType.id}
+                    disabled={matterType.documents.length === 0}
+                  >
                     {matterType.name}
+                    {matterType.documents.length === 0
+                      ? ' (Template required)'
+                      : ''}
                   </option>
                 ))}
               </select>

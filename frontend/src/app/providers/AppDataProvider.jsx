@@ -1,5 +1,9 @@
 import { useState } from 'react'
 import {
+  cleanMatterTypeName,
+  isMatterTypeNameDuplicate,
+} from '../../features/matterTypes/utils/normalizeMatterTypeName.js'
+import {
   cleanMatterName,
   isMatterNameDuplicate,
 } from '../../features/matters/utils/normalizeMatterName.js'
@@ -7,7 +11,7 @@ import {
   getMockMatterDocuments,
   getMockMatterHistory,
 } from '../../mocks/matterDetails.js'
-import { matterTypes } from '../../mocks/matterTypes.js'
+import { matterTypes as initialMatterTypes } from '../../mocks/matterTypes.js'
 import { matters as initialMatters } from '../../mocks/matters.js'
 import { AppDataContext } from './AppDataContext.js'
 
@@ -23,7 +27,15 @@ function createInitialMatterRecords() {
   )
 }
 
+function createInitialMatterTypes() {
+  return initialMatterTypes.map((matterType) => ({
+    ...matterType,
+    documents: matterType.documents.map((document) => ({ ...document })),
+  }))
+}
+
 function AppDataProvider({ children }) {
+  const [matterTypes, setMatterTypes] = useState(createInitialMatterTypes)
   const [matters, setMatters] = useState(() =>
     initialMatters.map((matter) => ({ ...matter })),
   )
@@ -35,6 +47,7 @@ function AppDataProvider({ children }) {
 
     if (
       !matterType ||
+      matterType.documents.length === 0 ||
       !cleanedMatterName ||
       isMatterNameDuplicate(matters, cleanedMatterName)
     ) {
@@ -46,7 +59,7 @@ function AppDataProvider({ children }) {
     const matter = {
       id: matterId,
       matterName: cleanedMatterName,
-      matterType: matterType.name,
+      matterTypeId: matterType.id,
       status: 'Pending Documents',
       statusSource: 'Automatic',
       statusUpdatedAt: now,
@@ -84,6 +97,58 @@ function AppDataProvider({ children }) {
     return matter
   }
 
+  function createMatterType({ name, description }) {
+    const cleanedName = cleanMatterTypeName(name)
+
+    if (
+      !cleanedName ||
+      isMatterTypeNameDuplicate(matterTypes, cleanedName)
+    ) {
+      return null
+    }
+
+    const matterType = {
+      id: `matter-type-${Date.now()}`,
+      name: cleanedName,
+      description: description.trim(),
+      documents: [],
+    }
+
+    setMatterTypes((currentMatterTypes) => [
+      ...currentMatterTypes,
+      matterType,
+    ])
+    return matterType
+  }
+
+  function updateMatterType(matterTypeId, { name, description }) {
+    const currentMatterType = matterTypes.find(
+      (matterType) => matterType.id === matterTypeId,
+    )
+    const cleanedName = cleanMatterTypeName(name)
+
+    if (
+      !currentMatterType ||
+      !cleanedName ||
+      isMatterTypeNameDuplicate(matterTypes, cleanedName, matterTypeId)
+    ) {
+      return null
+    }
+
+    const updatedMatterType = {
+      ...currentMatterType,
+      name: cleanedName,
+      description: description.trim(),
+    }
+
+    setMatterTypes((currentMatterTypes) =>
+      currentMatterTypes.map((matterType) =>
+        matterType.id === matterTypeId ? updatedMatterType : matterType,
+      ),
+    )
+    return updatedMatterType
+  }
+
   function saveMatterChanges(matterId, changes) {
     const now = new Date().toISOString()
 
@@ -111,9 +176,12 @@ function AppDataProvider({ children }) {
   }
 
   const value = {
+    matterTypes,
     matters,
     matterRecords,
     createMatter,
+    createMatterType,
+    updateMatterType,
     saveMatterChanges,
   }
 

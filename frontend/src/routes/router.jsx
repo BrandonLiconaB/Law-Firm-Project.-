@@ -1,5 +1,8 @@
 import { Navigate, createBrowserRouter } from 'react-router'
 import AppLayout from '../layouts/AppLayout.jsx'
+import EditMatterTypePage from '../features/matterTypes/pages/EditMatterTypePage.jsx'
+import MatterTypesPage from '../features/matterTypes/pages/MatterTypesPage.jsx'
+import NewMatterTypePage from '../features/matterTypes/pages/NewMatterTypePage.jsx'
 import MatterDetailPage from '../features/matters/pages/MatterDetailPage.jsx'
 import MattersPage from '../features/matters/pages/MattersPage.jsx'
 import NewMatterPage from '../features/matters/pages/NewMatterPage.jsx'
@@ -28,13 +31,15 @@ export const router = createBrowserRouter([
       },
       {
         path: 'admin/matter-types',
-        element: (
-          <PlaceholderPage
-            eyebrow="Administration"
-            title="Matter types"
-            description="Manage the types of matters available to the firm."
-          />
-        ),
+        element: <MatterTypesPage />,
+      },
+      {
+        path: 'admin/matter-types/new',
+        element: <NewMatterTypePage />,
+      },
+      {
+        path: 'admin/matter-types/:matterTypeId/edit',
+        element: <EditMatterTypePage />,
       },
       {
         path: 'admin/templates',
