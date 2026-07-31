@@ -1,8 +1,7 @@
 export const matters = [
   {
     id: 'matter-001',
-    clientId: 'client-001',
-    matterNumber: '2026-00124',
+    matterName: 'Torres, Elena (402424)',
     matterType: 'Family Petition',
     status: 'Pending Documents',
     statusSource: 'Automatic',
@@ -11,8 +10,7 @@ export const matters = [
   },
   {
     id: 'matter-002',
-    clientId: 'client-002',
-    matterNumber: '2026-00119',
+    matterName: 'Johnson, Marcus (402419)',
     matterType: 'Citizenship',
     status: 'Ready to Start Drafting',
     statusSource: 'Automatic',
@@ -21,8 +19,7 @@ export const matters = [
   },
   {
     id: 'matter-003',
-    clientId: 'client-003',
-    matterNumber: '2026-00107',
+    matterName: 'Hernandez, Isabel (402407)',
     matterType: 'Adjustment of Status',
     status: 'Ready to Draft',
     statusSource: 'Automatic',
@@ -31,8 +28,7 @@ export const matters = [
   },
   {
     id: 'matter-004',
-    clientId: 'client-004',
-    matterNumber: '2026-00098',
+    matterName: 'Lee, David (402398)',
     matterType: 'Work Authorization',
     status: 'Ready to R/S',
     statusSource: 'Manual',
@@ -41,8 +37,7 @@ export const matters = [
   },
   {
     id: 'matter-005',
-    clientId: 'client-005',
-    matterNumber: '2026-00087',
+    matterName: 'Rivera, Camila (402387)',
     matterType: 'Family Petition',
     status: 'Pending Corrections',
     statusSource: 'Manual',
@@ -51,8 +46,7 @@ export const matters = [
   },
   {
     id: 'matter-006',
-    clientId: 'client-006',
-    matterNumber: '2026-00076',
+    matterName: 'Williams, Noah (402376)',
     matterType: 'Citizenship',
     status: 'Corrections Ready',
     statusSource: 'Manual',
@@ -61,8 +55,7 @@ export const matters = [
   },
   {
     id: 'matter-007',
-    clientId: 'client-007',
-    matterNumber: '2026-00061',
+    matterName: 'Martinez, Ana (402361)',
     matterType: 'Adjustment of Status',
     status: 'Accepted',
     statusSource: 'Manual',
@@ -71,8 +64,7 @@ export const matters = [
   },
   {
     id: 'matter-008',
-    clientId: 'client-008',
-    matterNumber: '2026-00042',
+    matterName: 'Wilson, James (402342)',
     matterType: 'Work Authorization',
     status: 'Sent',
     statusSource: 'Manual',

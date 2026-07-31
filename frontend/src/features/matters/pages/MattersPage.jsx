@@ -15,15 +15,11 @@ function formatDate(date) {
 }
 
 function MattersPage() {
-  const { clients, matters } = useAppData()
+  const { matters } = useAppData()
   const [search, setSearch] = useState('')
   const [status, setStatus] = useState('')
   const [matterType, setMatterType] = useState('')
 
-  const clientsById = useMemo(
-    () => new Map(clients.map((client) => [client.id, client])),
-    [clients],
-  )
   const matterTypeOptions = useMemo(
     () => [...new Set(matters.map((matter) => matter.matterType))],
     [matters],
@@ -33,17 +29,15 @@ function MattersPage() {
     const normalizedSearch = search.trim().toLowerCase()
 
     return matters.filter((matter) => {
-      const clientName = clientsById.get(matter.clientId)?.fullName ?? ''
       const matchesSearch =
         normalizedSearch.length === 0 ||
-        clientName.toLowerCase().includes(normalizedSearch) ||
-        matter.matterNumber.toLowerCase().includes(normalizedSearch)
+        matter.matterName.toLowerCase().includes(normalizedSearch)
       const matchesStatus = status.length === 0 || matter.status === status
       const matchesType = matterType.length === 0 || matter.matterType === matterType
 
       return matchesSearch && matchesStatus && matchesType
     })
-  }, [clientsById, matterType, matters, search, status])
+  }, [matterType, matters, search, status])
 
   const hasFilters = search.length > 0 || status.length > 0 || matterType.length > 0
 
@@ -73,7 +67,7 @@ function MattersPage() {
             id="matter-search"
             type="search"
             value={search}
-            placeholder="Client name or matter number"
+            placeholder="Name or matter identifier"
             onChange={(event) => setSearch(event.target.value)}
           />
         </div>
@@ -130,8 +124,7 @@ function MattersPage() {
             <table>
               <thead>
                 <tr>
-                  <th>Matter</th>
-                  <th>Client</th>
+                  <th>Matter name</th>
                   <th>Matter type</th>
                   <th>Status</th>
                   <th>Last updated</th>
@@ -143,10 +136,9 @@ function MattersPage() {
                   <tr key={matter.id}>
                     <td>
                       <Link className={styles.matterLink} to={`/matters/${matter.id}`}>
-                        {matter.matterNumber}
+                        {matter.matterName}
                       </Link>
                     </td>
-                    <td>{clientsById.get(matter.clientId)?.fullName ?? 'Unknown client'}</td>
                     <td>{matter.matterType}</td>
                     <td>
                       <StatusBadge status={matter.status} />
@@ -168,18 +160,14 @@ function MattersPage() {
               <article className={styles.matterCard} key={matter.id}>
                 <div className={styles.cardTopRow}>
                   <div>
-                    <p className={styles.cardLabel}>Matter</p>
+                    <p className={styles.cardLabel}>Matter name</p>
                     <Link className={styles.matterLink} to={`/matters/${matter.id}`}>
-                      {matter.matterNumber}
+                      {matter.matterName}
                     </Link>
                   </div>
                   <StatusBadge status={matter.status} />
                 </div>
                 <dl className={styles.cardDetails}>
-                  <div>
-                    <dt>Client</dt>
-                    <dd>{clientsById.get(matter.clientId)?.fullName ?? 'Unknown client'}</dd>
-                  </div>
                   <div>
                     <dt>Matter type</dt>
                     <dd>{matter.matterType}</dd>

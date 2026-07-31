@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { Link, useParams } from 'react-router'
+import { Link, useLocation, useParams } from 'react-router'
 import { useAppData } from '../../../app/providers/useAppData.js'
 import PlaceholderPage from '../../../components/common/PlaceholderPage.jsx'
 import Button from '../../../components/ui/Button.jsx'
@@ -20,7 +20,7 @@ function formatDateTime(dateTime) {
   }).format(new Date(dateTime))
 }
 
-function MatterDetail({ client, matter, matterRecord, onSave }) {
+function MatterDetail({ matter, matterRecord, notice, onSave }) {
   const [documents, setDocuments] = useState(() =>
     matterRecord.documents.map((document) => ({ ...document })),
   )
@@ -123,6 +123,12 @@ function MatterDetail({ client, matter, matterRecord, onSave }) {
 
   return (
     <section className={styles.page}>
+      {notice && (
+        <div className={styles.createdNotice} role="status">
+          {notice}
+        </div>
+      )}
+
       <div className={styles.previewNotice} role="status">
         Preview data only. Changes on this page are not connected to a database yet.
       </div>
@@ -133,8 +139,8 @@ function MatterDetail({ client, matter, matterRecord, onSave }) {
 
       <header className={styles.pageHeader}>
         <div>
-          <p className={styles.eyebrow}>Matter {matter.matterNumber}</p>
-          <h1>{client.fullName}</h1>
+          <p className={styles.eyebrow}>Matter record</p>
+          <h1>{matter.matterName}</h1>
           <p className={styles.matterType}>{matter.matterType}</p>
         </div>
 
@@ -248,12 +254,12 @@ function MatterDetail({ client, matter, matterRecord, onSave }) {
 
 function MatterDetailPage() {
   const { matterId } = useParams()
-  const { clients, matterRecords, matters, saveMatterChanges } = useAppData()
+  const location = useLocation()
+  const { matterRecords, matters, saveMatterChanges } = useAppData()
   const matter = matters.find((item) => item.id === matterId)
-  const client = clients.find((item) => item.id === matter?.clientId)
   const matterRecord = matterRecords[matterId]
 
-  if (!matter || !client || !matterRecord) {
+  if (!matter || !matterRecord) {
     return (
       <PlaceholderPage
         eyebrow="Matter details"
@@ -266,9 +272,9 @@ function MatterDetailPage() {
   return (
     <MatterDetail
       key={matter.id}
-      client={client}
       matter={matter}
       matterRecord={matterRecord}
+      notice={location.state?.notice}
       onSave={(changes) => saveMatterChanges(matter.id, changes)}
     />
   )

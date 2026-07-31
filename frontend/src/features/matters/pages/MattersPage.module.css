@@ -151,6 +151,10 @@
   font-weight: 700;
 }
 
+.matterLink {
+  overflow-wrap: anywhere;
+}
+
 .openLink {
   font-size: 0.8rem;
 }
@@ -258,10 +262,6 @@
     margin: 18px 0 0;
   }
 
-  .cardDetails div:last-child {
-    grid-column: 1 / -1;
-  }
-
   .cardDetails dt {
     color: var(--color-text-muted);
     font-size: 0.6875rem;
@@ -295,7 +295,4 @@
     grid-template-columns: 1fr;
   }
 
-  .cardDetails div:last-child {
-    grid-column: auto;
-  }
 }

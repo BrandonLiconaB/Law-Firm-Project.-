@@ -2,15 +2,25 @@
   width: 100%;
 }
 
-.previewNotice {
+.previewNotice,
+.createdNotice {
   margin-bottom: 20px;
   padding: 11px 14px;
-  color: #1d4ed8;
   font-size: 0.78rem;
   font-weight: 600;
+  border-radius: var(--border-radius-medium);
+}
+
+.previewNotice {
+  color: #1d4ed8;
   background: #eff6ff;
   border: 1px solid #bfdbfe;
-  border-radius: var(--border-radius-medium);
+}
+
+.createdNotice {
+  color: var(--color-success);
+  background: #ecfdf3;
+  border: 1px solid #abefc6;
 }
 
 .backLink {
@@ -46,6 +56,7 @@
   font-size: clamp(2rem, 4vw, 2.65rem);
   line-height: 1.1;
   letter-spacing: -0.04em;
+  overflow-wrap: anywhere;
 }
 
 .matterType {

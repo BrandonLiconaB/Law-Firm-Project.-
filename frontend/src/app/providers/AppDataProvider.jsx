@@ -1,9 +1,13 @@
 import { useState } from 'react'
-import { clients as initialClients } from '../../mocks/clients.js'
+import {
+  cleanMatterName,
+  isMatterNameDuplicate,
+} from '../../features/matters/utils/normalizeMatterName.js'
 import {
   getMockMatterDocuments,
   getMockMatterHistory,
 } from '../../mocks/matterDetails.js'
+import { matterTypes } from '../../mocks/matterTypes.js'
 import { matters as initialMatters } from '../../mocks/matters.js'
 import { AppDataContext } from './AppDataContext.js'
 
@@ -20,37 +24,64 @@ function createInitialMatterRecords() {
 }
 
 function AppDataProvider({ children }) {
-  const [clients, setClients] = useState(() =>
-    initialClients.map((client) => ({ ...client })),
-  )
   const [matters, setMatters] = useState(() =>
     initialMatters.map((matter) => ({ ...matter })),
   )
   const [matterRecords, setMatterRecords] = useState(createInitialMatterRecords)
 
-  function createClient(fullName) {
-    const now = new Date().toISOString()
-    const client = {
-      id: `client-${Date.now()}`,
-      fullName: fullName.trim(),
-      createdAt: now,
-      updatedAt: now,
+  function createMatter({ matterName, matterTypeId }) {
+    const matterType = matterTypes.find((type) => type.id === matterTypeId)
+    const cleanedMatterName = cleanMatterName(matterName)
+
+    if (
+      !matterType ||
+      !cleanedMatterName ||
+      isMatterNameDuplicate(matters, cleanedMatterName)
+    ) {
+      return null
     }
 
-    setClients((currentClients) => [...currentClients, client])
-    return client
-  }
-
-  function updateClient(clientId, fullName) {
     const now = new Date().toISOString()
+    const matterId = `matter-${Date.now()}`
+    const matter = {
+      id: matterId,
+      matterName: cleanedMatterName,
+      matterType: matterType.name,
+      status: 'Pending Documents',
+      statusSource: 'Automatic',
+      statusUpdatedAt: now,
+      updatedAt: now.slice(0, 10),
+    }
+    const documents = matterType.documents.map((document) => ({
+      ...document,
+      id: `${matterId}-${document.id}`,
+      status: 'Pending',
+      receivedQuantity: document.expectedQuantity === null ? null : 0,
+      comment: '',
+      updatedBy: 'Administrator',
+      updatedAt: now,
+    }))
+    const history = [
+      {
+        id: `${matterId}-created`,
+        fromStatus: null,
+        toStatus: 'Pending Documents',
+        changedBy: 'System',
+        changedAt: now,
+        source: 'Automatic',
+      },
+    ]
 
-    setClients((currentClients) =>
-      currentClients.map((client) =>
-        client.id === clientId
-          ? { ...client, fullName: fullName.trim(), updatedAt: now }
-          : client,
-      ),
-    )
+    setMatters((currentMatters) => [matter, ...currentMatters])
+    setMatterRecords((currentRecords) => ({
+      ...currentRecords,
+      [matterId]: {
+        documents,
+        history,
+      },
+    }))
+
+    return matter
   }
 
   function saveMatterChanges(matterId, changes) {
@@ -80,11 +111,9 @@ function AppDataProvider({ children }) {
   }
 
   const value = {
-    clients,
     matters,
     matterRecords,
-    createClient,
-    updateClient,
+    createMatter,
     saveMatterChanges,
   }
 

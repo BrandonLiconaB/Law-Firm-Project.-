@@ -1,0 +1,152 @@
+.preview {
+  min-height: 100%;
+  padding: 22px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-large);
+  box-shadow: var(--shadow-small);
+}
+
+.emptyPreview {
+  display: grid;
+  place-items: center;
+  text-align: center;
+}
+
+.emptyPreview > div {
+  max-width: 390px;
+}
+
+.eyebrow {
+  margin-bottom: 5px;
+  color: var(--color-accent);
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.preview h2 {
+  font-size: 1.2rem;
+}
+
+.emptyPreview p:last-child,
+.description {
+  margin-top: 8px;
+  color: var(--color-text-muted);
+  font-size: 0.8rem;
+}
+
+.previewHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.demoBadge,
+.keyBadge {
+  flex: none;
+  border-radius: 999px;
+  font-size: 0.625rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.demoBadge {
+  padding: 4px 8px;
+  color: #344054;
+  background: var(--color-surface-subtle);
+  border: 1px solid var(--color-border);
+}
+
+.summary {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.summary div {
+  padding: 13px;
+  background: var(--color-surface-subtle);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-medium);
+}
+
+.summary strong,
+.summary span {
+  display: block;
+}
+
+.summary strong {
+  font-size: 1.05rem;
+}
+
+.summary span {
+  margin-top: 2px;
+  color: var(--color-text-muted);
+  font-size: 0.68rem;
+}
+
+.documentList {
+  display: grid;
+  gap: 0;
+  margin: 20px 0 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--color-border);
+}
+
+.documentList li {
+  padding: 14px 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.documentHeading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.documentHeading strong {
+  color: var(--color-text);
+  font-size: 0.8rem;
+}
+
+.keyBadge {
+  padding: 2px 6px;
+  color: #1d4ed8;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+}
+
+.documentList p {
+  margin-top: 4px;
+  color: var(--color-text-muted);
+  font-size: 0.72rem;
+  line-height: 1.45;
+}
+
+.quantity {
+  display: block;
+  margin-top: 6px;
+  color: var(--color-text-soft);
+  font-size: 0.67rem;
+  font-weight: 600;
+}
+
+.snapshotNote {
+  margin-top: 16px;
+  padding: 11px 12px;
+  color: var(--color-text-muted);
+  font-size: 0.7rem;
+  background: var(--color-surface-subtle);
+  border-radius: var(--border-radius-medium);
+}
+
+@media (max-width: 480px) {
+  .previewHeader {
+    flex-direction: column;
+  }
+}

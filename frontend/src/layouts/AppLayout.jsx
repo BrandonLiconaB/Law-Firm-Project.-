@@ -4,7 +4,6 @@ import styles from './AppLayout.module.css'
 
 const workspaceLinks = [
   { to: '/matters', label: 'Matters', initials: 'MT' },
-  { to: '/clients', label: 'Clients', initials: 'CL' },
 ]
 
 const administrationLinks = [

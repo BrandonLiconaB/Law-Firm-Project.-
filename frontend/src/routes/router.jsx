@@ -1,11 +1,8 @@
 import { Navigate, createBrowserRouter } from 'react-router'
 import AppLayout from '../layouts/AppLayout.jsx'
-import ClientDetailPage from '../features/clients/pages/ClientDetailPage.jsx'
-import ClientsPage from '../features/clients/pages/ClientsPage.jsx'
-import EditClientPage from '../features/clients/pages/EditClientPage.jsx'
-import NewClientPage from '../features/clients/pages/NewClientPage.jsx'
 import MatterDetailPage from '../features/matters/pages/MatterDetailPage.jsx'
 import MattersPage from '../features/matters/pages/MattersPage.jsx'
+import NewMatterPage from '../features/matters/pages/NewMatterPage.jsx'
 import PlaceholderPage from '../components/common/PlaceholderPage.jsx'
 
 export const router = createBrowserRouter([
@@ -23,33 +20,11 @@ export const router = createBrowserRouter([
       },
       {
         path: 'matters/new',
-        element: (
-          <PlaceholderPage
-            eyebrow="Matters"
-            title="Create a new matter"
-            description="The matter creation form will be built in the next product phase."
-          />
-        ),
+        element: <NewMatterPage />,
       },
       {
         path: 'matters/:matterId',
         element: <MatterDetailPage />,
-      },
-      {
-        path: 'clients',
-        element: <ClientsPage />,
-      },
-      {
-        path: 'clients/new',
-        element: <NewClientPage />,
-      },
-      {
-        path: 'clients/:clientId',
-        element: <ClientDetailPage />,
-      },
-      {
-        path: 'clients/:clientId/edit',
-        element: <EditClientPage />,
       },
       {
         path: 'admin/matter-types',
