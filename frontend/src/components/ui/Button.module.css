@@ -16,8 +16,12 @@
     transform 160ms ease;
 }
 
-.button:active {
+.button:active:not(:disabled) {
   transform: translateY(1px);
+}
+
+.button:disabled {
+  opacity: 0.55;
 }
 
 .primary {
@@ -26,7 +30,7 @@
   border-color: var(--color-accent);
 }
 
-.primary:hover {
+.primary:hover:not(:disabled) {
   background: var(--color-accent-hover);
   border-color: var(--color-accent-hover);
 }
@@ -37,6 +41,6 @@
   border-color: var(--color-border-strong);
 }
 
-.secondary:hover {
+.secondary:hover:not(:disabled) {
   background: var(--color-surface-subtle);
 }

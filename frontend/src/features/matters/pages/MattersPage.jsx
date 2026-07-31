@@ -1,22 +1,10 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router'
+import { useAppData } from '../../../app/providers/useAppData.js'
 import ButtonLink from '../../../components/ui/ButtonLink.jsx'
 import StatusBadge from '../../../components/ui/StatusBadge.jsx'
-import { matters } from '../../../mocks/matters.js'
+import { MATTER_STATUSES } from '../constants/matterStatuses.js'
 import styles from './MattersPage.module.css'
-
-const statusOptions = [
-  'Pending Documents',
-  'Ready to Start Drafting',
-  'Ready to Draft',
-  'Ready to R/S',
-  'Pending Corrections',
-  'Corrections Ready',
-  'Accepted',
-  'Sent',
-]
-
-const matterTypeOptions = [...new Set(matters.map((matter) => matter.matterType))]
 
 function formatDate(date) {
   return new Intl.DateTimeFormat('en-US', {
@@ -27,24 +15,35 @@ function formatDate(date) {
 }
 
 function MattersPage() {
+  const { clients, matters } = useAppData()
   const [search, setSearch] = useState('')
   const [status, setStatus] = useState('')
   const [matterType, setMatterType] = useState('')
+
+  const clientsById = useMemo(
+    () => new Map(clients.map((client) => [client.id, client])),
+    [clients],
+  )
+  const matterTypeOptions = useMemo(
+    () => [...new Set(matters.map((matter) => matter.matterType))],
+    [matters],
+  )
 
   const filteredMatters = useMemo(() => {
     const normalizedSearch = search.trim().toLowerCase()
 
     return matters.filter((matter) => {
+      const clientName = clientsById.get(matter.clientId)?.fullName ?? ''
       const matchesSearch =
         normalizedSearch.length === 0 ||
-        matter.clientName.toLowerCase().includes(normalizedSearch) ||
+        clientName.toLowerCase().includes(normalizedSearch) ||
         matter.matterNumber.toLowerCase().includes(normalizedSearch)
       const matchesStatus = status.length === 0 || matter.status === status
       const matchesType = matterType.length === 0 || matter.matterType === matterType
 
       return matchesSearch && matchesStatus && matchesType
     })
-  }, [matterType, search, status])
+  }, [clientsById, matterType, matters, search, status])
 
   const hasFilters = search.length > 0 || status.length > 0 || matterType.length > 0
 
@@ -87,7 +86,7 @@ function MattersPage() {
             onChange={(event) => setStatus(event.target.value)}
           >
             <option value="">All statuses</option>
-            {statusOptions.map((option) => (
+            {MATTER_STATUSES.map((option) => (
               <option key={option} value={option}>
                 {option}
               </option>
@@ -147,7 +146,7 @@ function MattersPage() {
                         {matter.matterNumber}
                       </Link>
                     </td>
-                    <td>{matter.clientName}</td>
+                    <td>{clientsById.get(matter.clientId)?.fullName ?? 'Unknown client'}</td>
                     <td>{matter.matterType}</td>
                     <td>
                       <StatusBadge status={matter.status} />
@@ -179,7 +178,7 @@ function MattersPage() {
                 <dl className={styles.cardDetails}>
                   <div>
                     <dt>Client</dt>
-                    <dd>{matter.clientName}</dd>
+                    <dd>{clientsById.get(matter.clientId)?.fullName ?? 'Unknown client'}</dd>
                   </div>
                   <div>
                     <dt>Matter type</dt>

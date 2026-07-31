@@ -1,5 +1,10 @@
 import { Navigate, createBrowserRouter } from 'react-router'
 import AppLayout from '../layouts/AppLayout.jsx'
+import ClientDetailPage from '../features/clients/pages/ClientDetailPage.jsx'
+import ClientsPage from '../features/clients/pages/ClientsPage.jsx'
+import EditClientPage from '../features/clients/pages/EditClientPage.jsx'
+import NewClientPage from '../features/clients/pages/NewClientPage.jsx'
+import MatterDetailPage from '../features/matters/pages/MatterDetailPage.jsx'
 import MattersPage from '../features/matters/pages/MattersPage.jsx'
 import PlaceholderPage from '../components/common/PlaceholderPage.jsx'
 
@@ -28,23 +33,23 @@ export const router = createBrowserRouter([
       },
       {
         path: 'matters/:matterId',
-        element: (
-          <PlaceholderPage
-            eyebrow="Matter details"
-            title="Document checklist"
-            description="This page will contain the matter status and its complete document checklist."
-          />
-        ),
+        element: <MatterDetailPage />,
       },
       {
         path: 'clients',
-        element: (
-          <PlaceholderPage
-            eyebrow="Workspace"
-            title="Clients"
-            description="Client search, creation, and matter associations will live here."
-          />
-        ),
+        element: <ClientsPage />,
+      },
+      {
+        path: 'clients/new',
+        element: <NewClientPage />,
+      },
+      {
+        path: 'clients/:clientId',
+        element: <ClientDetailPage />,
+      },
+      {
+        path: 'clients/:clientId/edit',
+        element: <EditClientPage />,
       },
       {
         path: 'admin/matter-types',

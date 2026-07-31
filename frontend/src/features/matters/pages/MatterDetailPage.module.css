@@ -1,0 +1,295 @@
+.page {
+  width: 100%;
+}
+
+.previewNotice {
+  margin-bottom: 20px;
+  padding: 11px 14px;
+  color: #1d4ed8;
+  font-size: 0.78rem;
+  font-weight: 600;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: var(--border-radius-medium);
+}
+
+.backLink {
+  display: inline-flex;
+  margin-bottom: 18px;
+  color: var(--color-accent);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.pageHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.eyebrow,
+.cardLabel {
+  color: var(--color-text-muted);
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.eyebrow {
+  margin-bottom: 6px;
+  color: var(--color-accent);
+}
+
+.pageHeader h1 {
+  font-size: clamp(2rem, 4vw, 2.65rem);
+  line-height: 1.1;
+  letter-spacing: -0.04em;
+}
+
+.matterType {
+  margin-top: 8px;
+  color: var(--color-text-muted);
+}
+
+.saveMessage {
+  width: fit-content;
+  margin: 16px 0 0 auto;
+  padding: 8px 11px;
+  color: var(--color-success);
+  font-size: 0.75rem;
+  font-weight: 700;
+  background: #ecfdf3;
+  border: 1px solid #abefc6;
+  border-radius: var(--border-radius-small);
+}
+
+.overviewGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(280px, 0.75fr);
+  gap: 18px;
+  margin-top: 30px;
+}
+
+.statusCard,
+.progressCard,
+.historySection {
+  padding: 20px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-large);
+  box-shadow: var(--shadow-small);
+}
+
+.cardHeading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.cardHeading .cardLabel {
+  margin-bottom: 8px;
+}
+
+.statusSource {
+  padding: 4px 8px;
+  color: #344054;
+  font-size: 0.67rem;
+  font-weight: 700;
+  background: var(--color-surface-subtle);
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+}
+
+.statusField {
+  display: block;
+  margin-top: 20px;
+}
+
+.statusField > span {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--color-text-muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.statusField select {
+  width: 100%;
+  min-height: 42px;
+  padding: 8px 10px;
+  color: var(--color-text);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--border-radius-medium);
+}
+
+.statusHelp,
+.statusUpdated,
+.progressCard p {
+  color: var(--color-text-muted);
+  font-size: 0.75rem;
+}
+
+.statusHelp {
+  margin-top: 9px;
+}
+
+.statusUpdated {
+  margin-top: 15px;
+  padding-top: 13px;
+  border-top: 1px solid var(--color-border);
+}
+
+.progressHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 12px;
+}
+
+.progressHeader strong {
+  font-size: 1rem;
+}
+
+.progressHeader span {
+  color: var(--color-accent);
+  font-size: 0.8rem;
+  font-weight: 800;
+}
+
+.progressTrack {
+  height: 8px;
+  margin: 12px 0;
+  overflow: hidden;
+  background: #e8edf3;
+  border-radius: 999px;
+}
+
+.progressTrack span {
+  height: 100%;
+  display: block;
+  background: var(--color-accent);
+  border-radius: inherit;
+  transition: width 180ms ease;
+}
+
+.nonBlockingNote {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--color-border);
+}
+
+.checklistSection,
+.historySection {
+  margin-top: 30px;
+}
+
+.sectionHeading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 14px;
+}
+
+.sectionHeading h2 {
+  margin-top: 4px;
+  font-size: 1.25rem;
+}
+
+.sectionHeading > p {
+  max-width: 600px;
+  color: var(--color-text-muted);
+  font-size: 0.75rem;
+  text-align: right;
+}
+
+.historySection {
+  margin-bottom: 20px;
+}
+
+.historyList {
+  display: grid;
+  gap: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.historyList li {
+  position: relative;
+  display: grid;
+  grid-template-columns: 16px 1fr;
+  gap: 12px;
+  padding-bottom: 18px;
+}
+
+.historyList li:not(:last-child)::before {
+  content: '';
+  position: absolute;
+  top: 12px;
+  bottom: 0;
+  left: 5px;
+  width: 2px;
+  background: var(--color-border);
+}
+
+.historyMarker {
+  position: relative;
+  z-index: 1;
+  width: 12px;
+  height: 12px;
+  margin-top: 5px;
+  background: var(--color-accent);
+  border: 3px solid #dbeafe;
+  border-radius: 50%;
+}
+
+.historyList strong {
+  font-size: 0.84rem;
+}
+
+.historyList p {
+  margin-top: 2px;
+  color: var(--color-text-muted);
+  font-size: 0.75rem;
+}
+
+.historyList div > span {
+  display: block;
+  margin-top: 4px;
+  color: var(--color-text-soft);
+  font-size: 0.68rem;
+}
+
+@media (max-width: 900px) {
+  .overviewGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 700px) {
+  .pageHeader,
+  .sectionHeading {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .pageHeader button {
+    width: 100%;
+  }
+
+  .sectionHeading > p {
+    text-align: left;
+  }
+
+  .saveMessage {
+    width: 100%;
+    margin-left: 0;
+    text-align: center;
+  }
+}

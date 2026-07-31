@@ -1,9 +1,9 @@
 import { Link } from 'react-router'
 import styles from './ButtonLink.module.css'
 
-function ButtonLink({ children, to }) {
+function ButtonLink({ children, to, variant = 'primary' }) {
   return (
-    <Link className={styles.button} to={to}>
+    <Link className={`${styles.button} ${styles[variant]}`} to={to}>
       {children}
     </Link>
   )
