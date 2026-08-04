@@ -119,8 +119,8 @@ function MatterTypeForm({
           </span>
         </div>
         <p>
-          Document requirements will be managed in the next administration
-          block.
+          Document requirements are managed separately from the Templates
+          section.
         </p>
       </div>
 

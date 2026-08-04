@@ -96,12 +96,20 @@ function MatterTypesPage() {
                       <td>{matterType.documents.length}</td>
                       <td>{keyDocumentCount}</td>
                       <td>
+                        <div className={styles.rowActions}>
                         <Link
                           className={styles.editLink}
                           to={`/admin/matter-types/${matterType.id}/edit`}
                         >
                           Edit
                         </Link>
+                          <Link
+                            className={styles.editLink}
+                            to={`/admin/templates/${matterType.id}`}
+                          >
+                            Template
+                          </Link>
+                        </div>
                       </td>
                     </tr>
                   )
@@ -138,12 +146,20 @@ function MatterTypesPage() {
                       <dd>{keyDocumentCount}</dd>
                     </div>
                   </dl>
-                  <Link
-                    className={styles.cardAction}
-                    to={`/admin/matter-types/${matterType.id}/edit`}
-                  >
-                    Edit matter type
-                  </Link>
+                  <div className={styles.cardActions}>
+                    <Link
+                      className={styles.cardAction}
+                      to={`/admin/matter-types/${matterType.id}/edit`}
+                    >
+                      Edit type
+                    </Link>
+                    <Link
+                      className={styles.cardAction}
+                      to={`/admin/templates/${matterType.id}`}
+                    >
+                      Template
+                    </Link>
+                  </div>
                 </article>
               )
             })}

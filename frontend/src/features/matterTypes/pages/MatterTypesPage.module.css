@@ -161,6 +161,12 @@
   font-size: 0.8rem;
 }
 
+.rowActions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
 .cardList {
   display: none;
 }
@@ -247,15 +253,21 @@
     font-size: 0.82rem;
   }
 
-  .cardAction {
-    min-height: 42px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-top: 18px;
-    font-size: 0.8rem;
-    background: var(--color-accent-soft);
-    border-radius: var(--border-radius-medium);
+.cardActions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 18px;
+}
+
+.cardAction {
+  min-height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  background: var(--color-accent-soft);
+  border-radius: var(--border-radius-medium);
   }
 }
 
@@ -288,5 +300,9 @@
 @media (max-width: 420px) {
   .cardHeader {
     flex-direction: column;
+  }
+
+  .cardActions {
+    grid-template-columns: 1fr;
   }
 }

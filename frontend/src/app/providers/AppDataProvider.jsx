@@ -8,6 +8,10 @@ import {
   isMatterNameDuplicate,
 } from '../../features/matters/utils/normalizeMatterName.js'
 import {
+  cleanTemplateDocumentName,
+  isTemplateDocumentNameDuplicate,
+} from '../../features/templates/utils/normalizeTemplateDocumentName.js'
+import {
   getMockMatterDocuments,
   getMockMatterHistory,
 } from '../../mocks/matterDetails.js'
@@ -149,6 +153,157 @@ function AppDataProvider({ children }) {
     return updatedMatterType
   }
 
+  function createTemplateDocument(matterTypeId, documentData) {
+    const matterType = matterTypes.find(
+      (currentMatterType) => currentMatterType.id === matterTypeId,
+    )
+    const cleanedName = cleanTemplateDocumentName(documentData.name)
+    const hasValidQuantity =
+      documentData.expectedQuantity === null ||
+      (Number.isInteger(documentData.expectedQuantity) &&
+        documentData.expectedQuantity > 0)
+
+    if (
+      !matterType ||
+      !cleanedName ||
+      !hasValidQuantity ||
+      isTemplateDocumentNameDuplicate(matterType.documents, cleanedName)
+    ) {
+      return null
+    }
+
+    const document = {
+      id: `${matterTypeId}-document-${Date.now()}`,
+      name: cleanedName,
+      description: documentData.description.trim(),
+      isKey: documentData.isKey,
+      expectedQuantity: documentData.expectedQuantity,
+    }
+
+    setMatterTypes((currentMatterTypes) =>
+      currentMatterTypes.map((currentMatterType) =>
+        currentMatterType.id === matterTypeId
+          ? {
+              ...currentMatterType,
+              documents: [...currentMatterType.documents, document],
+            }
+          : currentMatterType,
+      ),
+    )
+    return document
+  }
+
+  function updateTemplateDocument(matterTypeId, documentId, documentData) {
+    const matterType = matterTypes.find(
+      (currentMatterType) => currentMatterType.id === matterTypeId,
+    )
+    const currentDocument = matterType?.documents.find(
+      (document) => document.id === documentId,
+    )
+    const cleanedName = cleanTemplateDocumentName(documentData.name)
+    const hasValidQuantity =
+      documentData.expectedQuantity === null ||
+      (Number.isInteger(documentData.expectedQuantity) &&
+        documentData.expectedQuantity > 0)
+
+    if (
+      !matterType ||
+      !currentDocument ||
+      !cleanedName ||
+      !hasValidQuantity ||
+      isTemplateDocumentNameDuplicate(
+        matterType.documents,
+        cleanedName,
+        documentId,
+      )
+    ) {
+      return null
+    }
+
+    const updatedDocument = {
+      ...currentDocument,
+      name: cleanedName,
+      description: documentData.description.trim(),
+      isKey: documentData.isKey,
+      expectedQuantity: documentData.expectedQuantity,
+    }
+
+    setMatterTypes((currentMatterTypes) =>
+      currentMatterTypes.map((currentMatterType) =>
+        currentMatterType.id === matterTypeId
+          ? {
+              ...currentMatterType,
+              documents: currentMatterType.documents.map((document) =>
+                document.id === documentId ? updatedDocument : document,
+              ),
+            }
+          : currentMatterType,
+      ),
+    )
+    return updatedDocument
+  }
+
+  function deleteTemplateDocument(matterTypeId, documentId) {
+    const matterType = matterTypes.find(
+      (currentMatterType) => currentMatterType.id === matterTypeId,
+    )
+    const documentExists = matterType?.documents.some(
+      (document) => document.id === documentId,
+    )
+
+    if (!matterType || !documentExists) {
+      return false
+    }
+
+    setMatterTypes((currentMatterTypes) =>
+      currentMatterTypes.map((currentMatterType) =>
+        currentMatterType.id === matterTypeId
+          ? {
+              ...currentMatterType,
+              documents: currentMatterType.documents.filter(
+                (document) => document.id !== documentId,
+              ),
+            }
+          : currentMatterType,
+      ),
+    )
+    return true
+  }
+
+  function moveTemplateDocument(matterTypeId, documentId, direction) {
+    const matterType = matterTypes.find(
+      (currentMatterType) => currentMatterType.id === matterTypeId,
+    )
+    const currentIndex = matterType?.documents.findIndex(
+      (document) => document.id === documentId,
+    )
+    const targetIndex =
+      direction === 'up' ? currentIndex - 1 : currentIndex + 1
+
+    if (
+      !matterType ||
+      currentIndex === undefined ||
+      currentIndex < 0 ||
+      targetIndex < 0 ||
+      targetIndex >= matterType.documents.length
+    ) {
+      return false
+    }
+
+    const reorderedDocuments = [...matterType.documents]
+    const [document] = reorderedDocuments.splice(currentIndex, 1)
+    reorderedDocuments.splice(targetIndex, 0, document)
+
+    setMatterTypes((currentMatterTypes) =>
+      currentMatterTypes.map((currentMatterType) =>
+        currentMatterType.id === matterTypeId
+          ? { ...currentMatterType, documents: reorderedDocuments }
+          : currentMatterType,
+      ),
+    )
+    return true
+  }
+
   function saveMatterChanges(matterId, changes) {
     const now = new Date().toISOString()
 
@@ -182,6 +337,10 @@ function AppDataProvider({ children }) {
     createMatter,
     createMatterType,
     updateMatterType,
+    createTemplateDocument,
+    updateTemplateDocument,
+    deleteTemplateDocument,
+    moveTemplateDocument,
     saveMatterChanges,
   }
 

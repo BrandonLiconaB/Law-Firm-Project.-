@@ -44,3 +44,14 @@
 .secondary:hover:not(:disabled) {
   background: var(--color-surface-subtle);
 }
+
+.danger {
+  color: #ffffff;
+  background: var(--color-danger);
+  border-color: var(--color-danger);
+}
+
+.danger:hover:not(:disabled) {
+  background: #912018;
+  border-color: #912018;
+}

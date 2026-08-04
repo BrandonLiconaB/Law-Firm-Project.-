@@ -6,6 +6,10 @@ import NewMatterTypePage from '../features/matterTypes/pages/NewMatterTypePage.j
 import MatterDetailPage from '../features/matters/pages/MatterDetailPage.jsx'
 import MattersPage from '../features/matters/pages/MattersPage.jsx'
 import NewMatterPage from '../features/matters/pages/NewMatterPage.jsx'
+import EditTemplateDocumentPage from '../features/templates/pages/EditTemplateDocumentPage.jsx'
+import NewTemplateDocumentPage from '../features/templates/pages/NewTemplateDocumentPage.jsx'
+import TemplateDetailPage from '../features/templates/pages/TemplateDetailPage.jsx'
+import TemplatesPage from '../features/templates/pages/TemplatesPage.jsx'
 import PlaceholderPage from '../components/common/PlaceholderPage.jsx'
 
 export const router = createBrowserRouter([
@@ -43,13 +47,19 @@ export const router = createBrowserRouter([
       },
       {
         path: 'admin/templates',
-        element: (
-          <PlaceholderPage
-            eyebrow="Administration"
-            title="Templates"
-            description="Create and maintain document requirement templates."
-          />
-        ),
+        element: <TemplatesPage />,
+      },
+      {
+        path: 'admin/templates/:matterTypeId',
+        element: <TemplateDetailPage />,
+      },
+      {
+        path: 'admin/templates/:matterTypeId/documents/new',
+        element: <NewTemplateDocumentPage />,
+      },
+      {
+        path: 'admin/templates/:matterTypeId/documents/:documentId/edit',
+        element: <EditTemplateDocumentPage />,
       },
       {
         path: 'admin/users',
