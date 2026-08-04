@@ -120,9 +120,14 @@
   border-radius: 999px;
 }
 
+.statusControls {
+  display: grid;
+  gap: 12px;
+  margin-top: 20px;
+}
+
 .statusField {
   display: block;
-  margin-top: 20px;
 }
 
 .statusField > span {

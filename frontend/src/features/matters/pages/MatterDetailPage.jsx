@@ -2,9 +2,11 @@ import { useMemo, useState } from 'react'
 import { Link, useLocation, useParams } from 'react-router'
 import { useAppData } from '../../../app/providers/useAppData.js'
 import PlaceholderPage from '../../../components/common/PlaceholderPage.jsx'
+import UnsavedChangesDialog from '../../../components/common/UnsavedChangesDialog.jsx'
 import Button from '../../../components/ui/Button.jsx'
 import ButtonLink from '../../../components/ui/ButtonLink.jsx'
 import StatusBadge from '../../../components/ui/StatusBadge.jsx'
+import { useUnsavedChangesWarning } from '../../../hooks/useUnsavedChangesWarning.js'
 import DocumentChecklist from '../../documents/components/DocumentChecklist.jsx'
 import { isDocumentResolved } from '../../documents/constants/documentStatuses.js'
 import { MATTER_STATUSES } from '../constants/matterStatuses.js'
@@ -31,21 +33,22 @@ function MatterDetail({
   const [documents, setDocuments] = useState(() =>
     matterRecord.documents.map((document) => ({ ...document })),
   )
-  const [manualMatterStatus, setManualMatterStatus] = useState(() =>
-    matter.statusSource === 'Automatic' ? null : matter.status,
-  )
+  const [statusMode, setStatusMode] = useState(matter.statusSource)
+  const [manualMatterStatus, setManualMatterStatus] = useState(matter.status)
   const [statusUpdatedAt, setStatusUpdatedAt] = useState(matter.statusUpdatedAt)
   const [statusHistory, setStatusHistory] = useState(() =>
     matterRecord.history.map((entry) => ({ ...entry })),
   )
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
   const [saveMessage, setSaveMessage] = useState('')
+  const navigationBlocker = useUnsavedChangesWarning(hasUnsavedChanges)
 
   const automaticMatterStatus = useMemo(
     () => calculateMatterStatus(documents),
     [documents],
   )
-  const currentMatterStatus = manualMatterStatus ?? automaticMatterStatus
+  const currentMatterStatus =
+    statusMode === 'Manual' ? manualMatterStatus : automaticMatterStatus
   const resolvedDocuments = documents.filter((document) =>
     isDocumentResolved(document.status),
   ).length
@@ -87,7 +90,7 @@ function MatterDetail({
     setHasUnsavedChanges(true)
     setSaveMessage('')
 
-    if (manualMatterStatus === null) {
+    if (statusMode === 'Automatic') {
       const nextAutomaticStatus = calculateMatterStatus(nextDocuments)
 
       if (previousAutomaticStatus !== nextAutomaticStatus) {
@@ -100,6 +103,32 @@ function MatterDetail({
         )
       }
     }
+  }
+
+  function handleStatusModeChange(event) {
+    const nextStatusMode = event.target.value
+
+    if (nextStatusMode === statusMode) {
+      return
+    }
+
+    if (nextStatusMode === 'Manual') {
+      setManualMatterStatus(currentMatterStatus)
+    } else if (automaticMatterStatus !== currentMatterStatus) {
+      const changedAt = new Date().toISOString()
+
+      addHistoryEntry(
+        currentMatterStatus,
+        automaticMatterStatus,
+        'Automatic',
+        changedAt,
+      )
+      setStatusUpdatedAt(changedAt)
+    }
+
+    setStatusMode(nextStatusMode)
+    setHasUnsavedChanges(true)
+    setSaveMessage('')
   }
 
   function handleMatterStatusChange(event) {
@@ -121,7 +150,7 @@ function MatterDetail({
       documents,
       history: statusHistory,
       status: currentMatterStatus,
-      statusSource: manualMatterStatus === null ? 'Automatic' : 'Manual',
+      statusSource: statusMode,
       statusUpdatedAt,
     })
     setHasUnsavedChanges(false)
@@ -171,24 +200,40 @@ function MatterDetail({
               <StatusBadge status={currentMatterStatus} />
             </div>
             <span className={styles.statusSource}>
-              {manualMatterStatus === null ? 'Automatic' : 'Manual'}
+              {statusMode}
             </span>
           </div>
 
-          <label className={styles.statusField}>
-            <span>Change matter status</span>
-            <select value={currentMatterStatus} onChange={handleMatterStatusChange}>
-              {MATTER_STATUSES.map((status) => (
-                <option key={status} value={status}>
-                  {status}
-                </option>
-              ))}
-            </select>
-          </label>
+          <div className={styles.statusControls}>
+            <label className={styles.statusField}>
+              <span>Status mode</span>
+              <select value={statusMode} onChange={handleStatusModeChange}>
+                <option value="Automatic">Automatic</option>
+                <option value="Manual">Manual override</option>
+              </select>
+            </label>
+
+            {statusMode === 'Manual' && (
+              <label className={styles.statusField}>
+                <span>Manual matter status</span>
+                <select
+                  value={manualMatterStatus}
+                  onChange={handleMatterStatusChange}
+                >
+                  {MATTER_STATUSES.map((status) => (
+                    <option key={status} value={status}>
+                      {status}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            )}
+          </div>
 
           <p className={styles.statusHelp}>
-            Selecting a status manually prevents document changes from updating it
-            automatically.
+            {statusMode === 'Automatic'
+              ? 'Document changes automatically determine the workflow through Ready to Draft.'
+              : 'Document changes will not alter the manually selected status.'}
           </p>
           <p className={styles.statusUpdated}>
             Last status change: {formatDateTime(statusUpdatedAt)}
@@ -260,6 +305,8 @@ function MatterDetail({
           ))}
         </ol>
       </section>
+
+      <UnsavedChangesDialog blocker={navigationBlocker} />
     </section>
   )
 }

@@ -1,9 +1,15 @@
 import { Link } from 'react-router'
 import { useAppData } from '../../../app/providers/useAppData.js'
+import {
+  getMatterTypeTemplateStatus,
+  isMatterTypeReady,
+  MATTER_TYPE_TEMPLATE_STATUSES,
+} from '../../matterTypes/utils/matterTypeTemplateStatus.js'
 import styles from './TemplatesPage.module.css'
 
-function TemplateStatus({ documentCount }) {
-  const isReady = documentCount > 0
+function TemplateStatus({ matterType }) {
+  const templateStatus = getMatterTypeTemplateStatus(matterType)
+  const isReady = templateStatus === MATTER_TYPE_TEMPLATE_STATUSES.READY
 
   return (
     <span
@@ -11,16 +17,14 @@ function TemplateStatus({ documentCount }) {
         isReady ? styles.readyStatus : styles.requiredStatus
       }`}
     >
-      {isReady ? 'Ready' : 'Template required'}
+      {templateStatus}
     </span>
   )
 }
 
 function TemplatesPage() {
   const { matterTypes } = useAppData()
-  const configuredCount = matterTypes.filter(
-    (matterType) => matterType.documents.length > 0,
-  ).length
+  const readyCount = matterTypes.filter(isMatterTypeReady).length
   const totalDocumentCount = matterTypes.reduce(
     (total, matterType) => total + matterType.documents.length,
     0,
@@ -42,8 +46,8 @@ function TemplatesPage() {
           <span>Matter types</span>
         </article>
         <article>
-          <strong>{configuredCount}</strong>
-          <span>Configured templates</span>
+          <strong>{readyCount}</strong>
+          <span>Ready templates</span>
         </article>
         <article>
           <strong>{totalDocumentCount}</strong>
@@ -64,7 +68,7 @@ function TemplatesPage() {
                   <p className={styles.cardLabel}>Matter type</p>
                   <h2>{matterType.name}</h2>
                 </div>
-                <TemplateStatus documentCount={matterType.documents.length} />
+                <TemplateStatus matterType={matterType} />
               </div>
 
               <p className={styles.description}>

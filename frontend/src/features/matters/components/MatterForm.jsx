@@ -2,6 +2,11 @@ import { useState } from 'react'
 import Button from '../../../components/ui/Button.jsx'
 import ButtonLink from '../../../components/ui/ButtonLink.jsx'
 import {
+  getMatterTypeTemplateStatus,
+  isMatterTypeReady,
+  MATTER_TYPE_TEMPLATE_STATUSES,
+} from '../../matterTypes/utils/matterTypeTemplateStatus.js'
+import {
   cleanMatterName,
   isMatterNameDuplicate,
 } from '../utils/normalizeMatterName.js'
@@ -45,9 +50,13 @@ function MatterForm({ matterTypes, matters, onSubmit }) {
       nextErrors.matterTypeId = 'Select a matter type.'
     } else if (!selectedMatterType) {
       nextErrors.matterTypeId = 'The selected matter type is not available.'
-    } else if (selectedMatterType.documents.length === 0) {
+    } else if (!isMatterTypeReady(selectedMatterType)) {
+      const templateStatus = getMatterTypeTemplateStatus(selectedMatterType)
+
       nextErrors.matterTypeId =
-        'Add documents to this matter type before using it.'
+        templateStatus === MATTER_TYPE_TEMPLATE_STATUSES.KEY_DOCUMENT_REQUIRED
+          ? 'Mark at least one template document as key before using this matter type.'
+          : 'Add documents to this matter type before using it.'
     }
 
     if (Object.keys(nextErrors).length > 0) {
@@ -116,18 +125,21 @@ function MatterForm({ matterTypes, matters, onSubmit }) {
                 }}
               >
                 <option value="">Select a matter type</option>
-                {matterTypes.map((matterType) => (
-                  <option
-                    key={matterType.id}
-                    value={matterType.id}
-                    disabled={matterType.documents.length === 0}
-                  >
-                    {matterType.name}
-                    {matterType.documents.length === 0
-                      ? ' (Template required)'
-                      : ''}
-                  </option>
-                ))}
+                {matterTypes.map((matterType) => {
+                  const templateStatus = getMatterTypeTemplateStatus(matterType)
+                  const isReady = isMatterTypeReady(matterType)
+
+                  return (
+                    <option
+                      key={matterType.id}
+                      value={matterType.id}
+                      disabled={!isReady}
+                    >
+                      {matterType.name}
+                      {!isReady ? ` (${templateStatus})` : ''}
+                    </option>
+                  )
+                })}
               </select>
               {errors.matterTypeId && (
                 <small id="matter-type-error" className={styles.errorMessage}>

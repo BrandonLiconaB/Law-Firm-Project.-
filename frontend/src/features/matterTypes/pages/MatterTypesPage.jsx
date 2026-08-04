@@ -1,10 +1,16 @@
 import { Link, useLocation } from 'react-router'
 import { useAppData } from '../../../app/providers/useAppData.js'
 import ButtonLink from '../../../components/ui/ButtonLink.jsx'
+import {
+  getMatterTypeTemplateStatus,
+  isMatterTypeReady,
+  MATTER_TYPE_TEMPLATE_STATUSES,
+} from '../utils/matterTypeTemplateStatus.js'
 import styles from './MatterTypesPage.module.css'
 
-function TemplateStatus({ documentCount }) {
-  const isReady = documentCount > 0
+function TemplateStatus({ matterType }) {
+  const templateStatus = getMatterTypeTemplateStatus(matterType)
+  const isReady = templateStatus === MATTER_TYPE_TEMPLATE_STATUSES.READY
 
   return (
     <span
@@ -12,7 +18,7 @@ function TemplateStatus({ documentCount }) {
         isReady ? styles.readyStatus : styles.requiredStatus
       }`}
     >
-      {isReady ? 'Ready' : 'Template required'}
+      {templateStatus}
     </span>
   )
 }
@@ -20,10 +26,8 @@ function TemplateStatus({ documentCount }) {
 function MatterTypesPage() {
   const { matterTypes } = useAppData()
   const location = useLocation()
-  const readyCount = matterTypes.filter(
-    (matterType) => matterType.documents.length > 0,
-  ).length
-  const templateRequiredCount = matterTypes.length - readyCount
+  const readyCount = matterTypes.filter(isMatterTypeReady).length
+  const configurationRequiredCount = matterTypes.length - readyCount
 
   return (
     <section className={styles.page}>
@@ -55,8 +59,8 @@ function MatterTypesPage() {
           <span>Ready for new matters</span>
         </article>
         <article>
-          <strong>{templateRequiredCount}</strong>
-          <span>Template required</span>
+          <strong>{configurationRequiredCount}</strong>
+          <span>Configuration required</span>
         </article>
       </div>
 
@@ -89,9 +93,7 @@ function MatterTypesPage() {
                         </p>
                       </td>
                       <td>
-                        <TemplateStatus
-                          documentCount={matterType.documents.length}
-                        />
+                        <TemplateStatus matterType={matterType} />
                       </td>
                       <td>{matterType.documents.length}</td>
                       <td>{keyDocumentCount}</td>
@@ -128,9 +130,7 @@ function MatterTypesPage() {
                 <article className={styles.matterTypeCard} key={matterType.id}>
                   <div className={styles.cardHeader}>
                     <h2>{matterType.name}</h2>
-                    <TemplateStatus
-                      documentCount={matterType.documents.length}
-                    />
+                    <TemplateStatus matterType={matterType} />
                   </div>
                   <p className={styles.cardDescription}>
                     {matterType.description ||

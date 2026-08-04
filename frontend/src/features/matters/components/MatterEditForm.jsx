@@ -2,6 +2,11 @@ import { useState } from 'react'
 import Button from '../../../components/ui/Button.jsx'
 import ButtonLink from '../../../components/ui/ButtonLink.jsx'
 import {
+  getMatterTypeTemplateStatus,
+  isMatterTypeReady,
+  MATTER_TYPE_TEMPLATE_STATUSES,
+} from '../../matterTypes/utils/matterTypeTemplateStatus.js'
+import {
   cleanMatterName,
   isMatterNameDuplicate,
 } from '../utils/normalizeMatterName.js'
@@ -57,10 +62,14 @@ function MatterEditForm({
       nextErrors.matterTypeId = 'Select an available matter type.'
     } else if (
       matterTypeChanged &&
-      selectedMatterType.documents.length === 0
+      !isMatterTypeReady(selectedMatterType)
     ) {
+      const templateStatus = getMatterTypeTemplateStatus(selectedMatterType)
+
       nextErrors.matterTypeId =
-        'The new matter type must have a configured document template.'
+        templateStatus === MATTER_TYPE_TEMPLATE_STATUSES.KEY_DOCUMENT_REQUIRED
+          ? 'The new matter type must have at least one key document.'
+          : 'The new matter type must have a configured document template.'
     }
 
     if (matterTypeChanged && !confirmsReplacement) {
@@ -134,17 +143,18 @@ function MatterEditForm({
           }}
         >
           {matterTypes.map((matterType) => {
-            const requiresTemplate = matterType.documents.length === 0
+            const templateStatus = getMatterTypeTemplateStatus(matterType)
+            const isReady = isMatterTypeReady(matterType)
             const isCurrentType = matterType.id === matter.matterTypeId
 
             return (
               <option
                 key={matterType.id}
                 value={matterType.id}
-                disabled={requiresTemplate && !isCurrentType}
+                disabled={!isReady && !isCurrentType}
               >
                 {matterType.name}
-                {requiresTemplate ? ' (Template required)' : ''}
+                {!isReady ? ` (${templateStatus})` : ''}
               </option>
             )
           })}

@@ -21,13 +21,25 @@ function QuantityField({ document, onDocumentChange }) {
       <input
         type="number"
         min="0"
+        step="1"
+        inputMode="numeric"
         value={document.receivedQuantity ?? ''}
         aria-label={`Received quantity for ${document.name}`}
         onChange={(event) => {
           const value = event.target.value
+
+          if (value !== '' && !/^\d+$/.test(value)) {
+            return
+          }
+
           onDocumentChange(document.id, {
-            receivedQuantity: value === '' ? '' : Math.max(0, Number(value)),
+            receivedQuantity: value === '' ? '' : Number(value),
           })
+        }}
+        onBlur={() => {
+          if (document.receivedQuantity === '') {
+            onDocumentChange(document.id, { receivedQuantity: 0 })
+          }
         }}
       />
       <span>of {document.expectedQuantity}</span>

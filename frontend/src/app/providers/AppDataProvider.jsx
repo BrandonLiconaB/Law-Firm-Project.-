@@ -3,6 +3,7 @@ import {
   cleanMatterTypeName,
   isMatterTypeNameDuplicate,
 } from '../../features/matterTypes/utils/normalizeMatterTypeName.js'
+import { isMatterTypeReady } from '../../features/matterTypes/utils/matterTypeTemplateStatus.js'
 import {
   cleanMatterName,
   isMatterNameDuplicate,
@@ -73,7 +74,7 @@ function AppDataProvider({ children }) {
 
     if (
       !matterType ||
-      matterType.documents.length === 0 ||
+      !isMatterTypeReady(matterType) ||
       !cleanedMatterName ||
       isMatterNameDuplicate(matters, cleanedMatterName)
     ) {
@@ -134,7 +135,7 @@ function AppDataProvider({ children }) {
       !nextMatterType ||
       !cleanedMatterName ||
       isMatterNameDuplicate(matters, cleanedMatterName, matterId) ||
-      (matterTypeChanged && nextMatterType.documents.length === 0)
+      (matterTypeChanged && !isMatterTypeReady(nextMatterType))
     ) {
       return null
     }

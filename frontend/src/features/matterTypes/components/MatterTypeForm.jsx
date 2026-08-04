@@ -5,6 +5,10 @@ import {
   cleanMatterTypeName,
   isMatterTypeNameDuplicate,
 } from '../utils/normalizeMatterTypeName.js'
+import {
+  getMatterTypeTemplateStatus,
+  MATTER_TYPE_TEMPLATE_STATUSES,
+} from '../utils/matterTypeTemplateStatus.js'
 import styles from './MatterTypeForm.module.css'
 
 function MatterTypeForm({
@@ -63,6 +67,9 @@ function MatterTypeForm({
   }
 
   const documentCount = initialMatterType?.documents.length ?? 0
+  const templateStatus = initialMatterType
+    ? getMatterTypeTemplateStatus(initialMatterType)
+    : MATTER_TYPE_TEMPLATE_STATUSES.TEMPLATE_REQUIRED
 
   return (
     <form className={styles.form} noValidate onSubmit={handleSubmit}>
@@ -114,8 +121,8 @@ function MatterTypeForm({
             {documentCount > 0
               ? `${documentCount} ${
                   documentCount === 1 ? 'document' : 'documents'
-                } configured`
-              : 'Template required'}
+                } configured · ${templateStatus}`
+              : templateStatus}
           </span>
         </div>
         <p>

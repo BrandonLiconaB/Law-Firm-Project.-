@@ -4,6 +4,7 @@ import { useAppData } from '../../../app/providers/useAppData.js'
 import PlaceholderPage from '../../../components/common/PlaceholderPage.jsx'
 import Button from '../../../components/ui/Button.jsx'
 import ButtonLink from '../../../components/ui/ButtonLink.jsx'
+import { getMatterTypeTemplateStatus } from '../../matterTypes/utils/matterTypeTemplateStatus.js'
 import styles from './TemplateDetailPage.module.css'
 
 function TemplateDetailPage() {
@@ -35,6 +36,7 @@ function TemplateDetailPage() {
   const keyDocumentCount = matterType.documents.filter(
     (document) => document.isKey,
   ).length
+  const templateStatus = getMatterTypeTemplateStatus(matterType)
 
   function handleDelete(documentId) {
     const wasDeleted = deleteTemplateDocument(matterType.id, documentId)
@@ -89,7 +91,7 @@ function TemplateDetailPage() {
         </article>
         <article>
           <strong>
-            {matterType.documents.length > 0 ? 'Ready' : 'Required'}
+            {templateStatus}
           </strong>
           <span>Template status</span>
         </article>
