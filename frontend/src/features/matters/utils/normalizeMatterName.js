@@ -6,10 +6,16 @@ export function normalizeMatterName(value) {
   return cleanMatterName(value).toLowerCase()
 }
 
-export function isMatterNameDuplicate(matters, matterName) {
+export function isMatterNameDuplicate(
+  matters,
+  matterName,
+  excludedMatterId = null,
+) {
   const normalizedMatterName = normalizeMatterName(matterName)
 
   return matters.some(
-    (matter) => normalizeMatterName(matter.matterName) === normalizedMatterName,
+    (matter) =>
+      matter.id !== excludedMatterId &&
+      normalizeMatterName(matter.matterName) === normalizedMatterName,
   )
 }

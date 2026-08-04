@@ -3,6 +3,7 @@ import { Link, useLocation, useParams } from 'react-router'
 import { useAppData } from '../../../app/providers/useAppData.js'
 import PlaceholderPage from '../../../components/common/PlaceholderPage.jsx'
 import Button from '../../../components/ui/Button.jsx'
+import ButtonLink from '../../../components/ui/ButtonLink.jsx'
 import StatusBadge from '../../../components/ui/StatusBadge.jsx'
 import DocumentChecklist from '../../documents/components/DocumentChecklist.jsx'
 import { isDocumentResolved } from '../../documents/constants/documentStatuses.js'
@@ -150,9 +151,14 @@ function MatterDetail({
           <p className={styles.matterType}>{matterTypeName}</p>
         </div>
 
-        <Button disabled={!hasUnsavedChanges} onClick={handleSave}>
-          Save changes
-        </Button>
+        <div className={styles.headerActions}>
+          <ButtonLink to={`/matters/${matter.id}/edit`} variant="secondary">
+            Edit matter
+          </ButtonLink>
+          <Button disabled={!hasUnsavedChanges} onClick={handleSave}>
+            Save changes
+          </Button>
+        </div>
       </header>
 
       {saveMessage && <p className={styles.saveMessage}>{saveMessage}</p>}

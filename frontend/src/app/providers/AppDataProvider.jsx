@@ -12,11 +12,18 @@ import {
   isTemplateDocumentNameDuplicate,
 } from '../../features/templates/utils/normalizeTemplateDocumentName.js'
 import {
+  cleanUserName,
+  isUserEmailDuplicate,
+  isUserEmailValid,
+  normalizeUserEmail,
+} from '../../features/users/utils/userValidation.js'
+import {
   getMockMatterDocuments,
   getMockMatterHistory,
 } from '../../mocks/matterDetails.js'
 import { matterTypes as initialMatterTypes } from '../../mocks/matterTypes.js'
 import { matters as initialMatters } from '../../mocks/matters.js'
+import { users as initialUsers } from '../../mocks/users.js'
 import { AppDataContext } from './AppDataContext.js'
 
 function createInitialMatterRecords() {
@@ -38,12 +45,27 @@ function createInitialMatterTypes() {
   }))
 }
 
+function createDocumentsFromMatterType(matterId, matterType, updatedAt) {
+  return matterType.documents.map((document) => ({
+    ...document,
+    id: `${matterId}-${document.id}`,
+    status: 'Pending',
+    receivedQuantity: document.expectedQuantity === null ? null : 0,
+    comment: '',
+    updatedBy: 'Administrator',
+    updatedAt,
+  }))
+}
+
 function AppDataProvider({ children }) {
   const [matterTypes, setMatterTypes] = useState(createInitialMatterTypes)
   const [matters, setMatters] = useState(() =>
     initialMatters.map((matter) => ({ ...matter })),
   )
   const [matterRecords, setMatterRecords] = useState(createInitialMatterRecords)
+  const [users, setUsers] = useState(() =>
+    initialUsers.map((user) => ({ ...user })),
+  )
 
   function createMatter({ matterName, matterTypeId }) {
     const matterType = matterTypes.find((type) => type.id === matterTypeId)
@@ -69,15 +91,11 @@ function AppDataProvider({ children }) {
       statusUpdatedAt: now,
       updatedAt: now.slice(0, 10),
     }
-    const documents = matterType.documents.map((document) => ({
-      ...document,
-      id: `${matterId}-${document.id}`,
-      status: 'Pending',
-      receivedQuantity: document.expectedQuantity === null ? null : 0,
-      comment: '',
-      updatedBy: 'Administrator',
-      updatedAt: now,
-    }))
+    const documents = createDocumentsFromMatterType(
+      matterId,
+      matterType,
+      now,
+    )
     const history = [
       {
         id: `${matterId}-created`,
@@ -99,6 +117,86 @@ function AppDataProvider({ children }) {
     }))
 
     return matter
+  }
+
+  function updateMatterDetails(matterId, { matterName, matterTypeId }) {
+    const currentMatter = matters.find((matter) => matter.id === matterId)
+    const currentRecord = matterRecords[matterId]
+    const nextMatterType = matterTypes.find(
+      (matterType) => matterType.id === matterTypeId,
+    )
+    const cleanedMatterName = cleanMatterName(matterName)
+    const matterTypeChanged = currentMatter?.matterTypeId !== matterTypeId
+
+    if (
+      !currentMatter ||
+      !currentRecord ||
+      !nextMatterType ||
+      !cleanedMatterName ||
+      isMatterNameDuplicate(matters, cleanedMatterName, matterId) ||
+      (matterTypeChanged && nextMatterType.documents.length === 0)
+    ) {
+      return null
+    }
+
+    const now = new Date().toISOString()
+    const updatedMatter = matterTypeChanged
+      ? {
+          ...currentMatter,
+          matterName: cleanedMatterName,
+          matterTypeId: nextMatterType.id,
+          status: 'Pending Documents',
+          statusSource: 'Automatic',
+          statusUpdatedAt: now,
+          updatedAt: now.slice(0, 10),
+        }
+      : {
+          ...currentMatter,
+          matterName: cleanedMatterName,
+          updatedAt: now.slice(0, 10),
+        }
+
+    setMatters((currentMatters) =>
+      currentMatters.map((matter) =>
+        matter.id === matterId ? updatedMatter : matter,
+      ),
+    )
+
+    if (matterTypeChanged) {
+      const statusResetEntry =
+        currentMatter.status === 'Pending Documents'
+          ? []
+          : [
+              {
+                id: `${matterId}-type-reset-${Date.now()}`,
+                fromStatus: currentMatter.status,
+                toStatus: 'Pending Documents',
+                changedBy: 'Administrator',
+                changedAt: now,
+                source: 'Manual',
+              },
+            ]
+
+      setMatterRecords((currentRecords) => ({
+        ...currentRecords,
+        [matterId]: {
+          documents: createDocumentsFromMatterType(
+            matterId,
+            nextMatterType,
+            now,
+          ),
+          history: [
+            ...statusResetEntry,
+            ...currentRecord.history.map((entry) => ({ ...entry })),
+          ],
+        },
+      }))
+    }
+
+    return {
+      matter: updatedMatter,
+      matterTypeChanged,
+    }
   }
 
   function createMatterType({ name, description }) {
@@ -304,6 +402,56 @@ function AppDataProvider({ children }) {
     return true
   }
 
+  function createUser({ name, email }) {
+    const cleanedName = cleanUserName(name)
+    const normalizedEmail = normalizeUserEmail(email)
+
+    if (
+      !cleanedName ||
+      !isUserEmailValid(normalizedEmail) ||
+      isUserEmailDuplicate(users, normalizedEmail)
+    ) {
+      return null
+    }
+
+    const user = {
+      id: `user-${Date.now()}`,
+      name: cleanedName,
+      email: normalizedEmail,
+    }
+
+    setUsers((currentUsers) => [...currentUsers, user])
+    return user
+  }
+
+  function updateUser(userId, { name, email }) {
+    const currentUser = users.find((user) => user.id === userId)
+    const cleanedName = cleanUserName(name)
+    const normalizedEmail = normalizeUserEmail(email)
+
+    if (
+      !currentUser ||
+      !cleanedName ||
+      !isUserEmailValid(normalizedEmail) ||
+      isUserEmailDuplicate(users, normalizedEmail, userId)
+    ) {
+      return null
+    }
+
+    const updatedUser = {
+      ...currentUser,
+      name: cleanedName,
+      email: normalizedEmail,
+    }
+
+    setUsers((currentUsers) =>
+      currentUsers.map((user) =>
+        user.id === userId ? updatedUser : user,
+      ),
+    )
+    return updatedUser
+  }
+
   function saveMatterChanges(matterId, changes) {
     const now = new Date().toISOString()
 
@@ -334,13 +482,17 @@ function AppDataProvider({ children }) {
     matterTypes,
     matters,
     matterRecords,
+    users,
     createMatter,
+    updateMatterDetails,
     createMatterType,
     updateMatterType,
     createTemplateDocument,
     updateTemplateDocument,
     deleteTemplateDocument,
     moveTemplateDocument,
+    createUser,
+    updateUser,
     saveMatterChanges,
   }
 
