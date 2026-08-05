@@ -10,12 +10,17 @@ function PlaceholderPage({
 }) {
   return (
     <section className={styles.page}>
-      <p className={styles.eyebrow}>{eyebrow}</p>
-      <h1>{title}</h1>
-      <p className={styles.description}>{description}</p>
-      <Link className={styles.backLink} to={backTo}>
-        {backLabel}
-      </Link>
+      <div className={styles.icon} aria-hidden="true">
+        !
+      </div>
+      <div className={styles.content}>
+        <p className={styles.eyebrow}>{eyebrow}</p>
+        <h1>{title}</h1>
+        <p className={styles.description}>{description}</p>
+        <Link className={styles.backLink} to={backTo}>
+          {backLabel} <span aria-hidden="true">→</span>
+        </Link>
+      </div>
     </section>
   )
 }

@@ -2,31 +2,34 @@
   overflow-x: auto;
   background: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: var(--border-radius-large);
-  box-shadow: var(--shadow-small);
+  border-radius: 18px;
+  box-shadow: 0 10px 28px rgb(16 34 59 / 7%);
 }
 
 .tableWrapper table {
   width: 100%;
-  min-width: 1080px;
+  min-width: 1100px;
   border-collapse: collapse;
 }
 
 .tableWrapper th,
 .tableWrapper td {
-  padding: 15px 14px;
+  padding: 16px 14px;
   text-align: left;
   vertical-align: top;
-  border-bottom: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--color-row-border);
 }
 
 .tableWrapper th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
   color: var(--color-text-muted);
-  font-size: 0.68rem;
+  font-size: 0.65rem;
   font-weight: 800;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.075em;
   text-transform: uppercase;
-  background: var(--color-surface-subtle);
+  background: var(--color-surface-tinted);
 }
 
 .tableWrapper th:first-child {
@@ -45,12 +48,39 @@
   width: 28%;
 }
 
+.tableWrapper tbody tr {
+  --document-state: #94a3b8;
+  transition: background-color 160ms ease;
+}
+
+.tableWrapper tbody tr[data-status='Pending'] {
+  --document-state: var(--status-pending-marker);
+}
+
+.tableWrapper tbody tr[data-status='Received'] {
+  --document-state: var(--color-success);
+}
+
+.tableWrapper tbody tr[data-status='Client Does Not Have'],
+.tableWrapper tbody tr[data-status='Not Applicable'] {
+  --document-state: #64748b;
+}
+
+.tableWrapper tbody tr:hover {
+  background: #f9fbfe;
+}
+
 .tableWrapper tbody tr:last-child td {
   border-bottom: 0;
 }
 
+.tableWrapper tbody td:first-child {
+  box-shadow: inset 4px 0 0 var(--document-state);
+}
+
 .documentIdentity {
   min-width: 190px;
+  padding-left: 4px;
 }
 
 .documentNameRow {
@@ -60,24 +90,26 @@
 }
 
 .documentNameRow strong {
-  color: var(--color-text);
-  font-size: 0.84rem;
+  color: #203750;
+  font-size: 0.82rem;
+  line-height: 1.4;
 }
 
 .documentIdentity p {
-  margin-top: 5px;
+  margin-top: 6px;
   color: var(--color-text-muted);
-  font-size: 0.75rem;
-  line-height: 1.45;
+  font-size: 0.71rem;
+  line-height: 1.5;
 }
 
 .keyBadge {
-  padding: 2px 6px;
-  color: #1d4ed8;
-  font-size: 0.625rem;
-  font-weight: 800;
-  background: #eff6ff;
-  border: 1px solid #bfdbfe;
+  padding: 3px 7px;
+  color: var(--color-accent-hover);
+  font-size: 0.58rem;
+  font-weight: 850;
+  letter-spacing: 0.05em;
+  background: var(--color-accent-soft);
+  border: 1px solid var(--color-accent-border);
   border-radius: 999px;
   text-transform: uppercase;
 }
@@ -86,59 +118,105 @@
 .quantityField input,
 .commentField {
   color: var(--color-text);
-  background: var(--color-surface);
+  background: var(--color-surface-tinted);
   border: 1px solid var(--color-border-strong);
-  border-radius: var(--border-radius-small);
+  border-radius: 9px;
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.statusSelect:hover,
+.quantityField input:hover,
+.commentField:hover {
+  background: var(--color-white);
+  border-color: var(--color-border-hover);
+}
+
+.statusSelect:focus,
+.quantityField input:focus,
+.commentField:focus {
+  background: var(--color-white);
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 4px rgb(59 130 246 / 9%);
 }
 
 .statusSelect {
   width: 100%;
   min-width: 170px;
-  min-height: 38px;
-  padding: 7px 9px;
-  font-size: 0.76rem;
+  min-height: 40px;
+  padding: 8px 9px;
+  font-size: 0.73rem;
+  font-weight: 700;
+}
+
+.statusSelect[data-status='Pending'] {
+  color: var(--status-pending-text);
+  background: var(--status-pending-background);
+  border-color: var(--status-pending-border);
+}
+
+.statusSelect[data-status='Received'] {
+  color: var(--color-success-strong);
+  background: var(--color-success-soft);
+  border-color: var(--color-success-border);
+}
+
+.statusSelect[data-status='Client Does Not Have'],
+.statusSelect[data-status='Not Applicable'] {
+  color: #475569;
+  background: #f6f8fa;
+  border-color: #d7dee7;
 }
 
 .quantityField {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 7px;
   color: var(--color-text-muted);
-  font-size: 0.75rem;
+  font-size: 0.71rem;
   white-space: nowrap;
 }
 
 .quantityField input {
-  width: 58px;
-  min-height: 38px;
-  padding: 7px;
+  width: 62px;
+  min-height: 40px;
+  padding: 8px;
+  font-weight: 700;
 }
 
 .notCounted {
+  display: inline-flex;
+  padding: 5px 8px;
   color: var(--color-text-soft);
-  font-size: 0.75rem;
+  font-size: 0.68rem;
+  font-weight: 650;
+  background: #f4f6f9;
+  border-radius: 7px;
 }
 
 .commentField {
   width: 100%;
   min-width: 220px;
   resize: vertical;
-  padding: 8px 9px;
-  font-size: 0.76rem;
-  line-height: 1.4;
+  padding: 9px 10px;
+  font-size: 0.73rem;
+  line-height: 1.45;
 }
 
 .updatedInformation {
   min-width: 130px;
   display: flex;
   flex-direction: column;
+  gap: 3px;
   color: var(--color-text-muted);
-  font-size: 0.71rem;
+  font-size: 0.67rem;
 }
 
 .updatedInformation span {
-  color: #344054;
-  font-weight: 700;
+  color: #34465d;
+  font-weight: 750;
 }
 
 .mobileList {
@@ -152,30 +230,58 @@
 
   .mobileList {
     display: grid;
-    gap: 12px;
+    gap: 14px;
   }
 
   .documentCard {
-    padding: 18px;
+    --document-state: #94a3b8;
+    position: relative;
+    overflow: hidden;
+    padding: 20px;
     background: var(--color-surface);
-    border: 1px solid var(--color-border);
-    border-radius: var(--border-radius-large);
-    box-shadow: var(--shadow-small);
+    border: 1px solid #d8e3ee;
+    border-radius: 17px;
+    box-shadow: 0 9px 24px rgb(16 34 59 / 7%);
+  }
+
+  .documentCard::before {
+    content: '';
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 4px;
+    background: var(--document-state);
+  }
+
+  .documentCard[data-status='Pending'] {
+    --document-state: var(--status-pending-marker);
+  }
+
+  .documentCard[data-status='Received'] {
+    --document-state: var(--color-success);
+  }
+
+  .documentCard[data-status='Client Does Not Have'],
+  .documentCard[data-status='Not Applicable'] {
+    --document-state: #64748b;
   }
 
   .mobileFields {
     display: grid;
     grid-template-columns: minmax(0, 1.25fr) minmax(0, 0.75fr);
     gap: 14px;
-    margin-top: 18px;
+    margin-top: 19px;
+    padding: 16px;
+    background: #f8fbff;
+    border: 1px solid #e1e9f1;
+    border-radius: 12px;
   }
 
   .mobileFields label > span {
     display: block;
-    margin-bottom: 6px;
-    color: var(--color-text-muted);
-    font-size: 0.6875rem;
-    font-weight: 700;
+    margin-bottom: 7px;
+    color: #52647a;
+    font-size: 0.65rem;
+    font-weight: 750;
   }
 
   .mobileComment {
@@ -190,14 +296,19 @@
     margin-top: 14px;
     padding-top: 12px;
     color: var(--color-text-muted);
-    font-size: 0.68rem;
+    font-size: 0.65rem;
     border-top: 1px solid var(--color-border);
   }
 }
 
 @media (max-width: 520px) {
+  .documentCard {
+    padding: 18px;
+  }
+
   .mobileFields {
     grid-template-columns: 1fr;
+    padding: 14px;
   }
 
   .mobileComment {

@@ -3,85 +3,75 @@
 }
 
 .notice {
-  margin-bottom: 20px;
-  padding: 11px 14px;
-  color: var(--color-success);
+  margin-bottom: 18px;
+  padding: 12px 15px;
+  color: var(--color-success-strong);
   font-size: 0.78rem;
-  font-weight: 600;
-  background: #ecfdf3;
-  border: 1px solid #abefc6;
-  border-radius: var(--border-radius-medium);
-}
-
-.pageHeader {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 24px;
-}
-
-.eyebrow {
-  margin-bottom: 6px;
-  color: var(--color-accent);
-  font-size: 0.75rem;
-  font-weight: 800;
-  letter-spacing: 0.09em;
-  text-transform: uppercase;
-}
-
-.pageHeader h1 {
-  font-size: clamp(2rem, 4vw, 2.75rem);
-  line-height: 1.1;
-  letter-spacing: -0.045em;
-}
-
-.introduction {
-  max-width: 690px;
-  margin-top: 10px;
-  color: var(--color-text-muted);
-  font-size: 0.95rem;
+  font-weight: 700;
+  background: var(--color-success-soft);
+  border: 1px solid var(--color-success-border);
+  border-radius: 11px;
+  box-shadow: var(--shadow-small);
 }
 
 .previewNotice {
-  margin-top: 28px;
-  padding: 11px 14px;
-  color: #1d4ed8;
+  margin: -22px 22px 0;
+  position: relative;
+  z-index: 2;
+  padding: 14px 16px;
+  color: var(--color-accent-hover);
   font-size: 0.76rem;
-  font-weight: 600;
-  background: #eff6ff;
-  border: 1px solid #bfdbfe;
-  border-radius: var(--border-radius-medium);
+  font-weight: 700;
+  background: rgb(255 255 255 / 98%);
+  border: 1px solid var(--color-cyan-border);
+  border-radius: 13px;
+  box-shadow: 0 12px 28px rgb(16 34 59 / 10%);
 }
 
 .searchPanel {
-  margin-top: 14px;
-  padding: 18px;
+  margin-top: 28px;
+  padding: 20px;
   background: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: var(--border-radius-large);
-  box-shadow: var(--shadow-small);
+  border-radius: 18px;
+  box-shadow: var(--shadow-medium);
 }
 
 .searchPanel label {
   display: block;
-  margin-bottom: 6px;
+  margin-bottom: 7px;
   color: var(--color-text-muted);
-  font-size: 0.75rem;
-  font-weight: 700;
+  font-size: 0.72rem;
+  font-weight: 750;
 }
 
 .searchPanel input {
-  width: min(100%, 520px);
-  min-height: 42px;
-  padding: 9px 12px;
+  width: min(100%, 560px);
+  min-height: 46px;
+  padding: 10px 13px;
   color: var(--color-text);
-  background: var(--color-surface);
+  background: var(--color-surface-tinted);
   border: 1px solid var(--color-border-strong);
-  border-radius: var(--border-radius-medium);
+  border-radius: 11px;
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease,
+    box-shadow 160ms ease;
 }
 
 .searchPanel input::placeholder {
   color: var(--color-text-soft);
+}
+
+.searchPanel input:hover {
+  background: var(--color-surface);
+  border-color: var(--color-border-hover);
+}
+
+.searchPanel input:focus {
+  background: var(--color-surface);
+  border-color: var(--color-accent);
+  box-shadow: var(--focus-ring);
 }
 
 .resultsHeader {
@@ -89,9 +79,10 @@
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  margin-top: 20px;
+  margin-top: 22px;
+  padding-inline: 4px;
   color: var(--color-text-muted);
-  font-size: 0.8125rem;
+  font-size: 0.78rem;
 }
 
 .resultsHeader strong {
@@ -100,12 +91,13 @@
 
 .resultsHeader button,
 .emptyState button {
-  padding: 6px;
-  color: var(--color-accent);
-  font-size: 0.8125rem;
-  font-weight: 700;
-  background: transparent;
-  border: 0;
+  padding: 7px 10px;
+  color: var(--color-accent-strong);
+  font-size: 0.78rem;
+  font-weight: 750;
+  background: var(--color-accent-soft);
+  border: 1px solid var(--color-accent-border);
+  border-radius: 8px;
 }
 
 .tableWrapper {
@@ -113,8 +105,8 @@
   overflow: hidden;
   background: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: var(--border-radius-large);
-  box-shadow: var(--shadow-small);
+  border-radius: 18px;
+  box-shadow: var(--shadow-medium);
 }
 
 .tableWrapper table {
@@ -124,23 +116,23 @@
 
 .tableWrapper th,
 .tableWrapper td {
-  padding: 15px 18px;
+  padding: 16px 18px;
   text-align: left;
   vertical-align: middle;
-  border-bottom: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--color-row-border);
 }
 
 .tableWrapper th {
   color: var(--color-text-muted);
-  font-size: 0.7rem;
+  font-size: 0.68rem;
   font-weight: 800;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.07em;
   text-transform: uppercase;
-  background: var(--color-surface-subtle);
+  background: var(--color-surface-tinted);
 }
 
 .tableWrapper td {
-  color: #344054;
+  color: var(--color-body-secondary);
   font-size: 0.82rem;
 }
 
@@ -149,27 +141,29 @@
 }
 
 .tableWrapper tbody tr:hover {
-  background: #fbfcfe;
+  background: var(--color-surface-tinted);
+  box-shadow: inset 3px 0 0 var(--color-teal);
 }
 
 .userIdentity {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 11px;
 }
 
 .userIdentity > span,
 .cardIdentity > span {
   flex: none;
-  width: 34px;
-  height: 34px;
+  width: 38px;
+  height: 38px;
   display: grid;
   place-items: center;
-  color: var(--color-accent);
+  color: var(--color-teal-strong);
   font-size: 0.67rem;
   font-weight: 800;
-  background: var(--color-accent-soft);
-  border-radius: 50%;
+  background: var(--color-teal-soft-strong);
+  border: 1px solid var(--color-teal-border);
+  border-radius: 11px;
 }
 
 .userIdentity strong {
@@ -178,12 +172,19 @@
 
 .editLink,
 .cardAction {
-  color: var(--color-accent);
-  font-weight: 700;
+  color: var(--color-accent-strong);
+  font-weight: 750;
 }
 
 .editLink {
-  font-size: 0.8rem;
+  padding: 6px 9px;
+  font-size: 0.76rem;
+  background: var(--color-accent-soft);
+  border-radius: 8px;
+}
+
+.editLink:hover {
+  background: var(--color-accent-soft-hover);
 }
 
 .cardList {
@@ -194,24 +195,26 @@
   display: grid;
   justify-items: center;
   margin-top: 10px;
-  padding: 60px 24px;
+  padding: 64px 24px;
   text-align: center;
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--border-radius-large);
+  background:
+    radial-gradient(circle at top, rgb(20 184 166 / 9%), transparent 42%),
+    var(--color-surface);
+  border: 1px dashed var(--color-teal-border);
+  border-radius: 18px;
 }
 
 .emptyState h2 {
-  font-size: 1.2rem;
+  font-size: 1.25rem;
 }
 
 .emptyState p {
-  margin-top: 6px;
+  margin-top: 7px;
   color: var(--color-text-muted);
 }
 
 .emptyState button {
-  margin-top: 14px;
+  margin-top: 16px;
 }
 
 .sessionNote {
@@ -222,17 +225,12 @@
 }
 
 @media (max-width: 760px) {
-  .pageHeader {
-    align-items: stretch;
-    flex-direction: column;
-  }
-
-  .pageHeader > a {
-    width: 100%;
-  }
-
   .previewNotice {
-    margin-top: 24px;
+    margin: 16px 0 0;
+  }
+
+  .searchPanel {
+    margin-top: 20px;
   }
 
   .searchPanel input {
@@ -245,16 +243,26 @@
 
   .cardList {
     display: grid;
-    gap: 12px;
+    gap: 14px;
     margin-top: 10px;
   }
 
   .userCard {
-    padding: 18px;
+    position: relative;
+    overflow: hidden;
+    padding: 20px;
     background: var(--color-surface);
     border: 1px solid var(--color-border);
     border-radius: var(--border-radius-large);
-    box-shadow: var(--shadow-small);
+    box-shadow: var(--shadow-medium);
+  }
+
+  .userCard::before {
+    content: '';
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 4px;
+    background: linear-gradient(180deg, var(--color-teal), var(--color-teal-light));
   }
 
   .cardIdentity {
@@ -264,25 +272,25 @@
   }
 
   .cardIdentity h2 {
-    font-size: 0.92rem;
+    font-size: 0.95rem;
   }
 
   .cardIdentity p {
-    margin-top: 2px;
+    margin-top: 3px;
     color: var(--color-text-muted);
     font-size: 0.75rem;
     overflow-wrap: anywhere;
   }
 
   .cardAction {
-    min-height: 42px;
+    min-height: 44px;
     display: flex;
     align-items: center;
     justify-content: center;
     margin-top: 18px;
     font-size: 0.8rem;
     background: var(--color-accent-soft);
-    border-radius: var(--border-radius-medium);
+    border-radius: 10px;
   }
 
   .sessionNote {

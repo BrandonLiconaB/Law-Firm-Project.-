@@ -1,45 +1,58 @@
 .form {
-  margin-top: 28px;
+  margin-top: 24px;
 }
 
 .layout {
   display: grid;
-  grid-template-columns: minmax(360px, 0.9fr) minmax(440px, 1.1fr);
+  grid-template-columns: minmax(340px, 0.84fr) minmax(440px, 1.16fr);
   align-items: stretch;
-  gap: 18px;
+  gap: 20px;
 }
 
 .formCard {
-  padding: 24px;
+  position: relative;
+  overflow: hidden;
+  padding: 30px;
   background: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: var(--border-radius-large);
-  box-shadow: var(--shadow-small);
+  border-radius: 20px;
+  box-shadow: 0 12px 30px rgb(16 34 59 / 7%);
+}
+
+.formCard::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  height: 4px;
+  background: linear-gradient(90deg, var(--color-accent-strong), var(--color-sky));
 }
 
 .eyebrow {
-  margin-bottom: 5px;
-  color: var(--color-accent);
-  font-size: 0.7rem;
+  margin-bottom: 6px;
+  color: var(--color-accent-strong);
+  font-size: 0.68rem;
   font-weight: 800;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
 }
 
 .cardHeading h2 {
-  font-size: 1.2rem;
+  color: var(--color-text);
+  font-size: 1.35rem;
+  letter-spacing: -0.025em;
 }
 
 .cardHeading > p:last-child {
-  margin-top: 6px;
+  margin-top: 8px;
   color: var(--color-text-muted);
   font-size: 0.78rem;
+  line-height: 1.5;
 }
 
 .fields {
   display: grid;
-  gap: 18px;
-  margin-top: 24px;
+  gap: 21px;
+  margin-top: 28px;
 }
 
 .field {
@@ -48,21 +61,25 @@
 
 .field > span {
   display: block;
-  margin-bottom: 7px;
-  color: var(--color-text);
-  font-size: 0.78rem;
-  font-weight: 700;
+  margin-bottom: 8px;
+  color: #2c3e55;
+  font-size: 0.76rem;
+  font-weight: 750;
 }
 
 .field input,
 .field select {
   width: 100%;
-  min-height: 44px;
-  padding: 10px 12px;
+  min-height: 48px;
+  padding: 11px 13px;
   color: var(--color-text);
-  background: var(--color-surface);
+  background: var(--color-surface-tinted);
   border: 1px solid var(--color-border-strong);
-  border-radius: var(--border-radius-medium);
+  border-radius: 11px;
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease,
+    box-shadow 160ms ease;
 }
 
 .field input::placeholder {
@@ -71,19 +88,28 @@
 
 .field input:hover,
 .field select:hover {
-  border-color: #aeb8c5;
+  background: var(--color-white);
+  border-color: var(--color-border-hover);
+}
+
+.field input:focus,
+.field select:focus {
+  background: var(--color-white);
+  border-color: var(--color-accent);
+  box-shadow: var(--focus-ring);
 }
 
 .field input[aria-invalid='true'],
 .field select[aria-invalid='true'] {
   border-color: var(--color-danger);
+  box-shadow: 0 0 0 4px rgb(180 35 24 / 8%);
 }
 
 .helpText,
 .errorMessage {
   display: block;
-  margin-top: 6px;
-  font-size: 0.7rem;
+  margin-top: 7px;
+  font-size: 0.69rem;
 }
 
 .helpText {
@@ -92,15 +118,17 @@
 
 .errorMessage {
   color: var(--color-danger);
-  font-weight: 600;
+  font-weight: 650;
 }
 
 .initialState {
-  margin-top: 24px;
-  padding: 14px;
-  background: var(--color-surface-subtle);
-  border: 1px solid var(--color-border);
-  border-radius: var(--border-radius-medium);
+  position: relative;
+  margin-top: 27px;
+  padding: 16px 16px 16px 19px;
+  background: linear-gradient(135deg, #f4f8ff, #f8fbff);
+  border: 1px solid #d6e4f7;
+  border-radius: 12px;
+  box-shadow: inset 4px 0 0 var(--color-accent);
 }
 
 .initialState strong,
@@ -109,26 +137,32 @@
 }
 
 .initialState strong {
-  font-size: 0.74rem;
+  color: #33465e;
+  font-size: 0.7rem;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
 }
 
 .initialState span {
-  margin-top: 2px;
-  color: var(--color-accent);
-  font-size: 0.72rem;
-  font-weight: 700;
+  margin-top: 4px;
+  color: var(--color-accent-strong);
+  font-size: 0.75rem;
+  font-weight: 800;
 }
 
 .initialState > p:last-child {
-  margin-top: 8px;
+  margin-top: 9px;
   color: var(--color-text-muted);
-  font-size: 0.7rem;
+  font-size: 0.69rem;
+  line-height: 1.5;
 }
 
 .actions {
   display: flex;
   gap: 10px;
-  margin-top: 24px;
+  margin-top: 27px;
+  padding-top: 22px;
+  border-top: 1px solid var(--color-border);
 }
 
 @media (max-width: 1040px) {
@@ -139,7 +173,8 @@
 
 @media (max-width: 520px) {
   .formCard {
-    padding: 20px;
+    padding: 24px 20px;
+    border-radius: 17px;
   }
 
   .actions {

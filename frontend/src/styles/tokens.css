@@ -2,32 +2,127 @@
   --font-family-base:
     Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 
-  --color-background: #f4f6f8;
+  --color-white: #ffffff;
+  --color-background: #f3f6fa;
   --color-surface: #ffffff;
   --color-surface-subtle: #f8fafc;
-  --color-text: #172033;
-  --color-text-muted: #667085;
-  --color-text-soft: #98a2b3;
-  --color-border: #e2e7ee;
-  --color-border-strong: #cfd6df;
+  --color-surface-tinted: #f7faff;
+  --color-text: #12243d;
+  --color-text-muted: #607086;
+  --color-text-soft: #91a0b3;
+  --color-border: #dbe4ef;
+  --color-border-strong: #cdd9e6;
+  --color-border-hover: #9fb0c4;
 
-  --color-brand-950: #132238;
-  --color-brand-900: #1a2c46;
-  --color-brand-800: #263d5c;
-  --color-accent: #276ef1;
-  --color-accent-hover: #1e5ed6;
-  --color-accent-soft: #edf4ff;
+  --color-brand-950: #10223b;
+  --color-brand-900: #17385f;
+  --color-brand-800: #21527f;
+  --color-brand-700: #2d6599;
+  --color-accent: #3b82f6;
+  --color-accent-strong: #2563eb;
+  --color-accent-hover: #1d4ed8;
+  --color-accent-soft: #eef5ff;
+  --color-accent-soft-hover: #dfeaff;
+  --color-accent-border: #c8dbfa;
+  --color-secondary: #6366f1;
+  --color-secondary-soft: #eef2ff;
+  --color-secondary-border: #c7d2fe;
+  --color-cyan: #0284c7;
+  --color-cyan-soft: #f0f9ff;
+  --color-cyan-border: #bae6fd;
+  --color-sky: #38bdf8;
+  --color-sky-light: #7dd3fc;
+  --color-teal: #14b8a6;
+  --color-teal-strong: #0f766e;
+  --color-teal-soft: #f0fdfa;
+  --color-teal-soft-strong: #ccfbf1;
+  --color-teal-border: #99f6e4;
+  --color-teal-light: #5eead4;
+  --color-purple: #7c3aed;
+  --color-purple-soft: #f5f2ff;
+  --color-purple-border: #d9ccfb;
+  --color-magenta: #a855f7;
+  --color-magenta-soft: #faf3ff;
+  --color-magenta-border: #e7c9fa;
 
-  --color-success: #18794e;
-  --color-warning: #9a6700;
+  --color-success: #16845b;
+  --color-success-strong: #18794e;
+  --color-success-soft: #ecfdf3;
+  --color-success-border: #abefc6;
+  --color-warning: #b45309;
+  --color-warning-strong: #9a6700;
+  --color-warning-soft: #fffaeb;
+  --color-warning-border: #fedf89;
   --color-danger: #b42318;
+  --color-danger-hover: #912018;
+  --color-danger-soft: #fff6f5;
+  --color-danger-border: #fecdca;
+  --color-neutral-soft: #f2f4f7;
+  --color-neutral-border: #d0d5dd;
+  --color-row-border: #e8edf3;
+  --color-body-secondary: #3b4c62;
+
+  --status-pending-marker: #d97706;
+  --status-pending-text: #9a4e08;
+  --status-pending-background: #fff8eb;
+  --status-pending-border: #f4d19b;
+  --status-ready-start-marker: #2563eb;
+  --status-ready-start-text: #1d4ed8;
+  --status-ready-start-background: #edf4ff;
+  --status-ready-start-border: #bfd4fa;
+  --status-ready-marker: #0891b2;
+  --status-ready-text: #0e7490;
+  --status-ready-background: #ecfeff;
+  --status-ready-border: #a5e7ef;
+  --status-review-marker: #7c3aed;
+  --status-review-text: #6d28d9;
+  --status-review-background: #f5f2ff;
+  --status-review-border: #d9ccfb;
+  --status-corrections-marker: #dc2626;
+  --status-corrections-text: #b42318;
+  --status-corrections-background: #fff1f0;
+  --status-corrections-border: #fac8c4;
+  --status-corrections-ready-marker: #a855f7;
+  --status-corrections-ready-text: #9333ea;
+  --status-corrections-ready-background: #faf3ff;
+  --status-corrections-ready-border: #e7c9fa;
+  --status-accepted-marker: #16a34a;
+  --status-accepted-text: #18794e;
+  --status-accepted-background: #edfdf4;
+  --status-accepted-border: #afe8c7;
+  --status-sent-marker: #475569;
+  --status-sent-text: #344054;
+  --status-sent-background: #f2f5f8;
+  --status-sent-border: #cfd8e2;
+
+  --color-sidebar-text: #dce6f3;
+  --color-sidebar-muted: #92a5be;
+  --color-sidebar-label: #8296b0;
+
+  --gradient-hero-primary:
+    radial-gradient(circle at 82% 18%, rgb(96 165 250 / 28%), transparent 28%),
+    linear-gradient(135deg, #10223b 0%, #17385f 58%, #1f4f7e 100%);
+  --gradient-hero-indigo:
+    radial-gradient(circle at 86% 14%, rgb(167 139 250 / 24%), transparent 30%),
+    linear-gradient(135deg, #172237 0%, #253c61 62%, #354f79 100%);
+  --gradient-hero-teal:
+    radial-gradient(circle at 84% 15%, rgb(45 212 191 / 20%), transparent 30%),
+    linear-gradient(135deg, #102b36 0%, #16465b 62%, #1d6074 100%);
+  --gradient-sidebar:
+    radial-gradient(circle at 10% 5%, rgb(59 130 246 / 16%), transparent 28%),
+    linear-gradient(180deg, #10223b 0%, #132b48 54%, #0d1d32 100%);
 
   --border-radius-small: 6px;
   --border-radius-medium: 10px;
-  --border-radius-large: 16px;
+  --border-radius-large: 17px;
+  --border-radius-xlarge: 22px;
+  --border-radius-hero: 24px;
 
-  --shadow-small: 0 1px 2px rgb(16 24 40 / 6%);
-  --shadow-medium: 0 8px 24px rgb(16 24 40 / 10%);
+  --shadow-small: 0 2px 8px rgb(16 34 59 / 5%);
+  --shadow-medium: 0 10px 28px rgb(16 34 59 / 8%);
+  --shadow-large: 0 16px 36px rgb(16 34 59 / 12%);
+  --shadow-hero: 0 20px 44px rgb(16 34 59 / 18%);
+  --focus-ring: 0 0 0 4px rgb(59 130 246 / 12%);
 
   --sidebar-width: 264px;
   --content-max-width: 1480px;

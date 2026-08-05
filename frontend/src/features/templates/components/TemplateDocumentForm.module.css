@@ -1,11 +1,11 @@
 .form {
   max-width: 780px;
-  margin-top: 28px;
-  padding: 24px;
+  margin-top: 24px;
+  padding: 26px;
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--border-radius-large);
-  box-shadow: var(--shadow-small);
+  box-shadow: var(--shadow-medium);
 }
 
 .field + .field {
@@ -35,7 +35,11 @@
   color: var(--color-text);
   background: var(--color-surface);
   border: 1px solid var(--color-border-strong);
-  border-radius: var(--border-radius-medium);
+  border-radius: 11px;
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    background-color 160ms ease;
 }
 
 .field input {
@@ -55,7 +59,14 @@
 .field input:hover,
 .field textarea:hover,
 .quantityField input:hover {
-  border-color: #aeb8c5;
+  border-color: var(--color-border-hover);
+}
+
+.field input:focus,
+.field textarea:focus,
+.quantityField input:focus {
+  border-color: var(--color-accent);
+  box-shadow: var(--focus-ring);
 }
 
 .field input[aria-invalid='true'],
@@ -84,9 +95,9 @@
   gap: 14px;
   margin-top: 24px;
   padding: 18px;
-  background: var(--color-surface-subtle);
-  border: 1px solid var(--color-border);
-  border-radius: var(--border-radius-medium);
+  background: var(--color-accent-soft);
+  border: 1px solid var(--color-accent-border);
+  border-radius: 12px;
 }
 
 .options legend {

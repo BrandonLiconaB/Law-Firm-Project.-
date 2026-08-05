@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { Link, useLocation } from 'react-router'
 import { useAppData } from '../../../app/providers/useAppData.js'
+import PageHero from '../../../components/common/PageHero.jsx'
 import ButtonLink from '../../../components/ui/ButtonLink.jsx'
 import styles from './UsersPage.module.css'
 
@@ -38,16 +39,15 @@ function UsersPage() {
         </p>
       )}
 
-      <header className={styles.pageHeader}>
-        <div>
-          <p className={styles.eyebrow}>Administration</p>
-          <h1>Users</h1>
-          <p className={styles.introduction}>
-            Maintain the name and email directory for internal application users.
-          </p>
-        </div>
-        <ButtonLink to="/admin/users/new">New user</ButtonLink>
-      </header>
+      <PageHero
+        eyebrow="Administration"
+        title="Users"
+        description="Maintain the name and email directory for internal application users."
+        contextLabel="Directory"
+        contextValue={`${users.length} internal users`}
+        tone="teal"
+        action={<ButtonLink to="/admin/users/new">New user</ButtonLink>}
+      />
 
       <div className={styles.previewNotice}>
         This directory is not connected to authentication or permissions yet.

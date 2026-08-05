@@ -2,45 +2,30 @@
   width: 100%;
 }
 
-.eyebrow,
 .cardLabel {
-  color: var(--color-accent);
-  font-size: 0.72rem;
+  color: var(--color-accent-strong);
+  font-size: 0.68rem;
   font-weight: 800;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
-.eyebrow {
-  margin-bottom: 6px;
-}
-
-.pageHeader h1 {
-  font-size: clamp(2rem, 4vw, 2.75rem);
-  line-height: 1.1;
-  letter-spacing: -0.045em;
-}
-
-.introduction {
-  max-width: 690px;
-  margin-top: 10px;
-  color: var(--color-text-muted);
-  font-size: 0.95rem;
-}
-
 .summaryGrid {
+  position: relative;
+  z-index: 2;
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 14px;
-  margin-top: 30px;
+  margin: -26px 22px 0;
 }
 
 .summaryGrid article {
-  padding: 17px 18px;
-  background: var(--color-surface);
+  min-height: 98px;
+  padding: 19px 20px;
+  background: rgb(255 255 255 / 98%);
   border: 1px solid var(--color-border);
   border-radius: var(--border-radius-large);
-  box-shadow: var(--shadow-small);
+  box-shadow: 0 12px 28px rgb(16 34 59 / 10%);
 }
 
 .summaryGrid strong,
@@ -49,28 +34,52 @@
 }
 
 .summaryGrid strong {
-  font-size: 1.35rem;
+  color: var(--color-text);
+  font-size: 1.55rem;
+  line-height: 1;
+  letter-spacing: -0.03em;
 }
 
 .summaryGrid span {
-  margin-top: 3px;
+  margin-top: 8px;
   color: var(--color-text-muted);
   font-size: 0.72rem;
+  font-weight: 700;
 }
 
 .templateGrid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 14px;
-  margin-top: 18px;
+  gap: 16px;
+  margin-top: 28px;
 }
 
 .templateCard {
-  padding: 20px;
+  position: relative;
+  overflow: hidden;
+  padding: 22px;
   background: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: var(--border-radius-large);
-  box-shadow: var(--shadow-small);
+  border-radius: 18px;
+  box-shadow: var(--shadow-medium);
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    transform 160ms ease;
+}
+
+.templateCard::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  height: 4px;
+  background: linear-gradient(90deg, var(--color-accent), var(--color-sky));
+}
+
+.templateCard:hover {
+  transform: translateY(-2px);
+  border-color: var(--color-accent-border);
+  box-shadow: var(--shadow-large);
 }
 
 .cardHeader {
@@ -81,42 +90,53 @@
 }
 
 .cardLabel {
-  margin-bottom: 4px;
-  color: var(--color-text-muted);
-  font-size: 0.67rem;
+  margin-bottom: 5px;
 }
 
 .cardHeader h2 {
-  font-size: 1.05rem;
+  color: var(--color-text);
+  font-size: 1.08rem;
+  letter-spacing: -0.02em;
 }
 
 .templateStatus {
   flex: none;
   display: inline-flex;
-  padding: 4px 8px;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 9px;
   font-size: 0.66rem;
   font-weight: 800;
   border: 1px solid;
   border-radius: 999px;
 }
 
+.templateStatus::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  background: currentColor;
+  border-radius: 50%;
+}
+
 .readyStatus {
-  color: var(--color-success);
-  background: #ecfdf3;
-  border-color: #abefc6;
+  color: var(--color-success-strong);
+  background: var(--color-success-soft);
+  border-color: var(--color-success-border);
 }
 
 .requiredStatus {
-  color: var(--color-warning);
-  background: #fffaeb;
-  border-color: #fedf89;
+  color: var(--color-warning-strong);
+  background: var(--color-warning-soft);
+  border-color: var(--color-warning-border);
 }
 
 .description {
   min-height: 44px;
-  margin-top: 10px;
+  margin-top: 11px;
   color: var(--color-text-muted);
   font-size: 0.76rem;
+  line-height: 1.55;
 }
 
 .templateCard dl {
@@ -124,6 +144,10 @@
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 14px;
   margin-top: 18px;
+  padding: 15px;
+  background: var(--color-surface-tinted);
+  border: 1px solid var(--color-row-border);
+  border-radius: 11px;
 }
 
 .templateCard dt {
@@ -133,21 +157,28 @@
 }
 
 .templateCard dd {
-  margin: 2px 0 0;
-  font-size: 0.86rem;
+  margin: 3px 0 0;
+  color: var(--color-text);
+  font-size: 0.9rem;
+  font-weight: 750;
 }
 
 .cardAction {
-  min-height: 42px;
+  min-height: 44px;
   display: flex;
   align-items: center;
   justify-content: center;
   margin-top: 18px;
-  color: var(--color-accent);
+  color: var(--color-accent-strong);
   font-size: 0.8rem;
-  font-weight: 700;
+  font-weight: 750;
   background: var(--color-accent-soft);
-  border-radius: var(--border-radius-medium);
+  border: 1px solid var(--color-accent-border);
+  border-radius: 10px;
+}
+
+.cardAction:hover {
+  background: var(--color-accent-soft-hover);
 }
 
 .sessionNote {
@@ -164,7 +195,7 @@
   }
 
   .summaryGrid {
-    margin-top: 24px;
+    margin: 16px 0 0;
   }
 
   .description {

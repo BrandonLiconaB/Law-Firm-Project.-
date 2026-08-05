@@ -1,67 +1,87 @@
 .badge {
+  --status-color: var(--status-sent-marker);
   width: fit-content;
+  min-height: 30px;
   display: inline-flex;
   align-items: center;
-  min-height: 28px;
-  padding: 4px 9px;
-  font-size: 0.75rem;
-  font-weight: 700;
+  gap: 7px;
+  padding: 5px 10px;
+  font-size: 0.7rem;
+  font-weight: 780;
   line-height: 1.25;
   border: 1px solid transparent;
   border-radius: 999px;
   white-space: nowrap;
 }
 
+.badge::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  flex: none;
+  background: var(--status-color);
+  border-radius: 50%;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--status-color) 14%, transparent);
+}
+
 .pending {
-  color: #9a3412;
-  background: #fff7ed;
-  border-color: #fed7aa;
+  --status-color: var(--status-pending-marker);
+  color: var(--status-pending-text);
+  background: var(--status-pending-background);
+  border-color: var(--status-pending-border);
 }
 
 .readyStart {
-  color: #1d4ed8;
-  background: #eff6ff;
-  border-color: #bfdbfe;
+  --status-color: var(--status-ready-start-marker);
+  color: var(--status-ready-start-text);
+  background: var(--status-ready-start-background);
+  border-color: var(--status-ready-start-border);
 }
 
 .ready {
-  color: #075985;
-  background: #ecfeff;
-  border-color: #a5f3fc;
+  --status-color: var(--status-ready-marker);
+  color: var(--status-ready-text);
+  background: var(--status-ready-background);
+  border-color: var(--status-ready-border);
 }
 
 .review {
-  color: #5b21b6;
-  background: #f5f3ff;
-  border-color: #ddd6fe;
+  --status-color: var(--status-review-marker);
+  color: var(--status-review-text);
+  background: var(--status-review-background);
+  border-color: var(--status-review-border);
 }
 
 .correctionsPending {
-  color: #b42318;
-  background: #fef3f2;
-  border-color: #fecdca;
+  --status-color: var(--status-corrections-marker);
+  color: var(--status-corrections-text);
+  background: var(--status-corrections-background);
+  border-color: var(--status-corrections-border);
 }
 
 .correctionsReady {
-  color: #9333ea;
-  background: #faf5ff;
-  border-color: #e9d5ff;
+  --status-color: var(--status-corrections-ready-marker);
+  color: var(--status-corrections-ready-text);
+  background: var(--status-corrections-ready-background);
+  border-color: var(--status-corrections-ready-border);
 }
 
 .accepted {
-  color: #18794e;
-  background: #ecfdf3;
-  border-color: #abefc6;
+  --status-color: var(--status-accepted-marker);
+  color: var(--status-accepted-text);
+  background: var(--status-accepted-background);
+  border-color: var(--status-accepted-border);
 }
 
 .sent {
-  color: #344054;
-  background: #f2f4f7;
-  border-color: #d0d5dd;
+  --status-color: var(--status-sent-marker);
+  color: var(--status-sent-text);
+  background: var(--status-sent-background);
+  border-color: var(--status-sent-border);
 }
 
 .neutral {
-  color: #344054;
-  background: #f8fafc;
-  border-color: #e2e8f0;
+  color: var(--status-sent-text);
+  background: var(--color-surface-subtle);
+  border-color: var(--color-border);
 }

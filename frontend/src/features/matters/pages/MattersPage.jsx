@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router'
 import { useAppData } from '../../../app/providers/useAppData.js'
+import PageHero from '../../../components/common/PageHero.jsx'
 import ButtonLink from '../../../components/ui/ButtonLink.jsx'
 import StatusBadge from '../../../components/ui/StatusBadge.jsx'
 import { MATTER_STATUSES } from '../constants/matterStatuses.js'
@@ -43,6 +44,21 @@ function MattersPage() {
   const hasFilters =
     search.length > 0 || status.length > 0 || matterTypeId.length > 0
 
+  const matterSummary = useMemo(
+    () => ({
+      total: matters.length,
+      pending: matters.filter((matter) => matter.status === 'Pending Documents')
+        .length,
+      draftReady: matters.filter((matter) =>
+        ['Ready to Start Drafting', 'Ready to Draft'].includes(matter.status),
+      ).length,
+      completed: matters.filter((matter) =>
+        ['Accepted', 'Sent'].includes(matter.status),
+      ).length,
+    }),
+    [matters],
+  )
+
   function clearFilters() {
     setSearch('')
     setStatus('')
@@ -51,73 +67,117 @@ function MattersPage() {
 
   return (
     <section className={styles.page}>
-      <header className={styles.pageHeader}>
-        <div>
-          <p className={styles.eyebrow}>Document control</p>
-          <h1>Matters</h1>
-          <p className={styles.introduction}>
-            Track document readiness and the current workflow status for every matter.
-          </p>
-        </div>
-        <ButtonLink to="/matters/new">New matter</ButtonLink>
-      </header>
+      <PageHero
+        eyebrow="Document control"
+        title="Matters"
+        description="Track document readiness and the current workflow status for every matter."
+        contextLabel="Workspace"
+        contextValue="Internal matter tracking"
+        action={<ButtonLink to="/matters/new">New matter</ButtonLink>}
+      />
 
-      <div className={styles.filters}>
-        <div className={styles.searchField}>
-          <label htmlFor="matter-search">Search</label>
-          <input
-            id="matter-search"
-            type="search"
-            value={search}
-            placeholder="Name or matter identifier"
-            onChange={(event) => setSearch(event.target.value)}
-          />
-        </div>
+      <section className={styles.summaryGrid} aria-label="Matter overview">
+        <article className={styles.summaryCard} data-tone="total">
+          <span className={styles.summaryMarker} aria-hidden="true" />
+          <div>
+            <strong>{matterSummary.total}</strong>
+            <span>Total matters</span>
+          </div>
+        </article>
+        <article className={styles.summaryCard} data-tone="pending">
+          <span className={styles.summaryMarker} aria-hidden="true" />
+          <div>
+            <strong>{matterSummary.pending}</strong>
+            <span>Pending documents</span>
+          </div>
+        </article>
+        <article className={styles.summaryCard} data-tone="ready">
+          <span className={styles.summaryMarker} aria-hidden="true" />
+          <div>
+            <strong>{matterSummary.draftReady}</strong>
+            <span>Drafting ready</span>
+          </div>
+        </article>
+        <article className={styles.summaryCard} data-tone="complete">
+          <span className={styles.summaryMarker} aria-hidden="true" />
+          <div>
+            <strong>{matterSummary.completed}</strong>
+            <span>Accepted or sent</span>
+          </div>
+        </article>
+      </section>
 
-        <div className={styles.filterField}>
-          <label htmlFor="status-filter">Status</label>
-          <select
-            id="status-filter"
-            value={status}
-            onChange={(event) => setStatus(event.target.value)}
-          >
-            <option value="">All statuses</option>
-            {MATTER_STATUSES.map((option) => (
-              <option key={option} value={option}>
-                {option}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div className={styles.filterField}>
-          <label htmlFor="type-filter">Matter type</label>
-          <select
-            id="type-filter"
-            value={matterTypeId}
-            onChange={(event) => setMatterTypeId(event.target.value)}
-          >
-            <option value="">All matter types</option>
-            {matterTypes.map((matterType) => (
-              <option key={matterType.id} value={matterType.id}>
-                {matterType.name}
-              </option>
-            ))}
-          </select>
+      <section className={styles.filterPanel} aria-labelledby="matter-filter-title">
+        <div className={styles.filterHeader}>
+          <div>
+            <p className={styles.panelEyebrow}>Matter directory</p>
+            <h2 id="matter-filter-title">Find a matter</h2>
+          </div>
+          <span>{hasFilters ? 'Filtered view' : 'All records'}</span>
         </div>
 
-        {hasFilters && (
-          <button type="button" className={styles.clearButton} onClick={clearFilters}>
-            Clear filters
-          </button>
-        )}
-      </div>
+        <div className={styles.filters}>
+          <div className={styles.searchField}>
+            <label htmlFor="matter-search">Search</label>
+            <input
+              id="matter-search"
+              type="search"
+              value={search}
+              placeholder="Name or matter identifier"
+              onChange={(event) => setSearch(event.target.value)}
+            />
+          </div>
+
+          <div className={styles.filterField}>
+            <label htmlFor="status-filter">Status</label>
+            <select
+              id="status-filter"
+              value={status}
+              onChange={(event) => setStatus(event.target.value)}
+            >
+              <option value="">All statuses</option>
+              {MATTER_STATUSES.map((option) => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className={styles.filterField}>
+            <label htmlFor="type-filter">Matter type</label>
+            <select
+              id="type-filter"
+              value={matterTypeId}
+              onChange={(event) => setMatterTypeId(event.target.value)}
+            >
+              <option value="">All matter types</option>
+              {matterTypes.map((matterType) => (
+                <option key={matterType.id} value={matterType.id}>
+                  {matterType.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {hasFilters && (
+            <button
+              type="button"
+              className={styles.clearButton}
+              onClick={clearFilters}
+            >
+              Clear filters
+            </button>
+          )}
+        </div>
+      </section>
 
       <div className={styles.resultsHeader}>
         <p>
-          <strong>{filteredMatters.length}</strong>{' '}
+          Showing <strong>{filteredMatters.length}</strong>{' '}
           {filteredMatters.length === 1 ? 'matter' : 'matters'}
         </p>
+        <span>{hasFilters ? 'Based on your current filters' : 'Most recent activity'}</span>
       </div>
 
       {filteredMatters.length > 0 ? (
@@ -151,7 +211,7 @@ function MattersPage() {
                     <td>{formatDate(matter.updatedAt)}</td>
                     <td>
                       <Link className={styles.openLink} to={`/matters/${matter.id}`}>
-                        Open
+                        Open matter <span aria-hidden="true">→</span>
                       </Link>
                     </td>
                   </tr>
@@ -186,7 +246,7 @@ function MattersPage() {
                   </div>
                 </dl>
                 <Link className={styles.cardAction} to={`/matters/${matter.id}`}>
-                  Open matter
+                  Open matter <span aria-hidden="true">→</span>
                 </Link>
               </article>
             ))}

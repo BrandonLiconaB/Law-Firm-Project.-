@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router'
 import { useAppData } from '../../../app/providers/useAppData.js'
+import PageHero from '../../../components/common/PageHero.jsx'
 import MatterForm from '../components/MatterForm.jsx'
 import styles from './NewMatterPage.module.css'
 
@@ -21,12 +22,13 @@ function NewMatterPage() {
 
   return (
     <section className={styles.page}>
-      <p className={styles.eyebrow}>Document control</p>
-      <h1>New matter</h1>
-      <p className={styles.introduction}>
-        Enter the complete matter name and copy the selected document template
-        into its record.
-      </p>
+      <PageHero
+        eyebrow="Document control"
+        title="New matter"
+        description="Enter the complete matter name and copy the selected document template into its record."
+        contextLabel="New record"
+        contextValue="Starts in Pending Documents"
+      />
 
       <MatterForm
         matterTypes={matterTypes}

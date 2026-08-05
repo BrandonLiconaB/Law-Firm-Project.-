@@ -51,6 +51,7 @@ function StatusField({ document, onDocumentChange }) {
   return (
     <select
       className={styles.statusSelect}
+      data-status={document.status}
       value={document.status}
       aria-label={`Status for ${document.name}`}
       onChange={(event) => onDocumentChange(document.id, { status: event.target.value })}
@@ -105,7 +106,7 @@ function DocumentChecklist({ documents, onDocumentChange }) {
           </thead>
           <tbody>
             {documents.map((document) => (
-              <tr key={document.id}>
+              <tr key={document.id} data-status={document.status}>
                 <td>
                   <DocumentIdentity document={document} />
                 </td>
@@ -134,7 +135,11 @@ function DocumentChecklist({ documents, onDocumentChange }) {
 
       <div className={styles.mobileList}>
         {documents.map((document) => (
-          <article className={styles.documentCard} key={document.id}>
+          <article
+            className={styles.documentCard}
+            key={document.id}
+            data-status={document.status}
+          >
             <DocumentIdentity document={document} />
 
             <div className={styles.mobileFields}>

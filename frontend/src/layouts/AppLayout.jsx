@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { NavLink, Outlet } from 'react-router'
 import styles from './AppLayout.module.css'
 
@@ -31,17 +31,71 @@ function NavigationLink({ item, onNavigate }) {
 
 function AppLayout() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [isMobileLayout, setIsMobileLayout] = useState(() =>
+    window.matchMedia('(max-width: 960px)').matches,
+  )
+  const menuButtonRef = useRef(null)
+  const sidebarRef = useRef(null)
 
   useEffect(() => {
-    function closeOnEscape(event) {
-      if (event.key === 'Escape') {
+    const mediaQuery = window.matchMedia('(max-width: 960px)')
+
+    function updateLayout(event) {
+      setIsMobileLayout(event.matches)
+      if (!event.matches) {
         setIsMenuOpen(false)
       }
     }
 
-    window.addEventListener('keydown', closeOnEscape)
-    return () => window.removeEventListener('keydown', closeOnEscape)
+    mediaQuery.addEventListener('change', updateLayout)
+    return () => mediaQuery.removeEventListener('change', updateLayout)
   }, [])
+
+  useEffect(() => {
+    if (!isMenuOpen) {
+      return undefined
+    }
+
+    const sidebar = sidebarRef.current
+    const menuButton = menuButtonRef.current
+    const previousOverflow = document.body.style.overflow
+    const focusableElements = Array.from(
+      sidebar?.querySelectorAll('a[href], button:not([disabled])') ?? [],
+    )
+
+    document.body.style.overflow = 'hidden'
+    focusableElements[0]?.focus()
+
+    function handleMenuKeyboard(event) {
+      if (event.key === 'Escape') {
+        setIsMenuOpen(false)
+        return
+      }
+
+      if (event.key !== 'Tab' || focusableElements.length === 0) {
+        return
+      }
+
+      const firstElement = focusableElements[0]
+      const lastElement = focusableElements[focusableElements.length - 1]
+
+      if (event.shiftKey && document.activeElement === firstElement) {
+        event.preventDefault()
+        lastElement.focus()
+      } else if (!event.shiftKey && document.activeElement === lastElement) {
+        event.preventDefault()
+        firstElement.focus()
+      }
+    }
+
+    window.addEventListener('keydown', handleMenuKeyboard)
+
+    return () => {
+      document.body.style.overflow = previousOverflow
+      window.removeEventListener('keydown', handleMenuKeyboard)
+      menuButton?.focus()
+    }
+  }, [isMenuOpen])
 
   function closeMenu() {
     setIsMenuOpen(false)
@@ -55,13 +109,15 @@ function AppLayout() {
           <span>Gestor documental</span>
         </div>
         <button
+          ref={menuButtonRef}
           type="button"
           className={styles.menuButton}
-          aria-label="Open navigation"
+          aria-label={isMenuOpen ? 'Close navigation' : 'Open navigation'}
+          aria-controls="app-sidebar"
           aria-expanded={isMenuOpen}
           onClick={() => setIsMenuOpen((current) => !current)}
         >
-          <span aria-hidden="true">☰</span>
+          <span aria-hidden="true">{isMenuOpen ? '×' : '☰'}</span>
         </button>
       </header>
 
@@ -75,7 +131,11 @@ function AppLayout() {
       )}
 
       <aside
+        id="app-sidebar"
+        ref={sidebarRef}
         className={`${styles.sidebar} ${isMenuOpen ? styles.sidebarOpen : ''}`}
+        aria-hidden={isMobileLayout && !isMenuOpen}
+        inert={isMobileLayout && !isMenuOpen ? '' : undefined}
       >
         <div className={styles.brand}>
           <span className={styles.brandMark}>GD</span>

@@ -1,5 +1,5 @@
 .button {
-  min-height: 42px;
+  min-height: 44px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -7,7 +7,7 @@
   font-size: 0.875rem;
   font-weight: 700;
   border: 1px solid transparent;
-  border-radius: var(--border-radius-medium);
+  border-radius: 11px;
   box-shadow: var(--shadow-small);
   transition:
     color 160ms ease,
@@ -21,9 +21,9 @@
 }
 
 .primary {
-  color: #ffffff;
-  background: var(--color-accent);
-  border-color: var(--color-accent);
+  color: var(--color-white);
+  background: linear-gradient(145deg, var(--color-accent), var(--color-accent-strong));
+  border-color: var(--color-accent-strong);
 }
 
 .primary:hover {

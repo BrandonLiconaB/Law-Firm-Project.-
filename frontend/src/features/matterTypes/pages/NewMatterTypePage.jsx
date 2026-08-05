@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router'
 import { useAppData } from '../../../app/providers/useAppData.js'
+import PageHero from '../../../components/common/PageHero.jsx'
 import MatterTypeForm from '../components/MatterTypeForm.jsx'
 import styles from './MatterTypeFormPage.module.css'
 
@@ -24,12 +25,14 @@ function NewMatterTypePage() {
 
   return (
     <section className={styles.page}>
-      <p className={styles.eyebrow}>Administration</p>
-      <h1>New matter type</h1>
-      <p className={styles.introduction}>
-        Create a category now and configure its document template in the next
-        administration step.
-      </p>
+      <PageHero
+        eyebrow="Administration"
+        title="New matter type"
+        description="Create a category now and configure its document template in the next administration step."
+        contextLabel="Next step"
+        contextValue="Add at least one key document"
+        tone="indigo"
+      />
 
       <MatterTypeForm
         matterTypes={matterTypes}

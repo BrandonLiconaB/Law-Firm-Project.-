@@ -1,5 +1,6 @@
 import { useNavigate, useParams } from 'react-router'
 import { useAppData } from '../../../app/providers/useAppData.js'
+import PageHero from '../../../components/common/PageHero.jsx'
 import PlaceholderPage from '../../../components/common/PlaceholderPage.jsx'
 import TemplateDocumentForm from '../components/TemplateDocumentForm.jsx'
 import styles from './TemplateDocumentFormPage.module.css'
@@ -49,11 +50,14 @@ function EditTemplateDocumentPage() {
 
   return (
     <section className={styles.page}>
-      <p className={styles.eyebrow}>Template · {matterType.name}</p>
-      <h1>Edit document</h1>
-      <p className={styles.introduction}>
-        Update how this requirement will appear in future matters.
-      </p>
+      <PageHero
+        eyebrow={`Template · ${matterType.name}`}
+        title="Edit document"
+        description="Update how this requirement will appear in future matters."
+        contextLabel="Current document"
+        contextValue={document.name}
+        tone="indigo"
+      />
 
       <TemplateDocumentForm
         documents={matterType.documents}

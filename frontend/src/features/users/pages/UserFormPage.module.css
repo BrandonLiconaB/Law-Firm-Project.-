@@ -2,28 +2,6 @@
   width: 100%;
 }
 
-.eyebrow {
-  margin-bottom: 6px;
-  color: var(--color-accent);
-  font-size: 0.75rem;
-  font-weight: 800;
-  letter-spacing: 0.09em;
-  text-transform: uppercase;
-}
-
-.page h1 {
-  font-size: clamp(2rem, 4vw, 2.75rem);
-  line-height: 1.1;
-  letter-spacing: -0.045em;
-}
-
-.introduction {
-  max-width: 690px;
-  margin-top: 10px;
-  color: var(--color-text-muted);
-  font-size: 0.95rem;
-}
-
 .sessionNote {
   max-width: 720px;
   margin-top: 18px;

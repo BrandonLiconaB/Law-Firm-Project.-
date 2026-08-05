@@ -1,6 +1,7 @@
 import { useNavigate, useParams } from 'react-router'
 import { useAppData } from '../../../app/providers/useAppData.js'
 import PlaceholderPage from '../../../components/common/PlaceholderPage.jsx'
+import PageHero from '../../../components/common/PageHero.jsx'
 import UserForm from '../components/UserForm.jsx'
 import styles from './UserFormPage.module.css'
 
@@ -38,11 +39,14 @@ function EditUserPage() {
 
   return (
     <section className={styles.page}>
-      <p className={styles.eyebrow}>Administration</p>
-      <h1>Edit user</h1>
-      <p className={styles.introduction}>
-        Update the name or email stored in the internal directory.
-      </p>
+      <PageHero
+        eyebrow="Administration"
+        title="Edit user"
+        description="Update the name or email stored in the internal directory."
+        contextLabel="Current user"
+        contextValue={user.name}
+        tone="teal"
+      />
 
       <UserForm
         users={users}

@@ -1,6 +1,7 @@
 import { useNavigate, useParams } from 'react-router'
 import { useAppData } from '../../../app/providers/useAppData.js'
 import PlaceholderPage from '../../../components/common/PlaceholderPage.jsx'
+import PageHero from '../../../components/common/PageHero.jsx'
 import MatterTypeForm from '../components/MatterTypeForm.jsx'
 import styles from './MatterTypeFormPage.module.css'
 
@@ -40,11 +41,14 @@ function EditMatterTypePage() {
 
   return (
     <section className={styles.page}>
-      <p className={styles.eyebrow}>Administration</p>
-      <h1>Edit matter type</h1>
-      <p className={styles.introduction}>
-        Changes to the name are reflected wherever this matter type is shown.
-      </p>
+      <PageHero
+        eyebrow="Administration"
+        title="Edit matter type"
+        description="Changes to the name are reflected wherever this matter type is shown."
+        contextLabel="Current type"
+        contextValue={matterType.name}
+        tone="indigo"
+      />
 
       <MatterTypeForm
         matterTypes={matterTypes}

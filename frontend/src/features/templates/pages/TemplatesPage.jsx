@@ -1,5 +1,6 @@
 import { Link } from 'react-router'
 import { useAppData } from '../../../app/providers/useAppData.js'
+import PageHero from '../../../components/common/PageHero.jsx'
 import {
   getMatterTypeTemplateStatus,
   isMatterTypeReady,
@@ -32,13 +33,13 @@ function TemplatesPage() {
 
   return (
     <section className={styles.page}>
-      <header className={styles.pageHeader}>
-        <p className={styles.eyebrow}>Administration</p>
-        <h1>Templates</h1>
-        <p className={styles.introduction}>
-          Configure the document requirements copied into every new matter.
-        </p>
-      </header>
+      <PageHero
+        eyebrow="Administration"
+        title="Templates"
+        description="Configure the document requirements copied into every new matter."
+        contextLabel="Template library"
+        contextValue={`${totalDocumentCount} document requirements`}
+      />
 
       <div className={styles.summaryGrid}>
         <article>
@@ -48,10 +49,6 @@ function TemplatesPage() {
         <article>
           <strong>{readyCount}</strong>
           <span>Ready templates</span>
-        </article>
-        <article>
-          <strong>{totalDocumentCount}</strong>
-          <span>Document requirements</span>
         </article>
       </div>
 

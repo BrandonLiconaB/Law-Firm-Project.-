@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useLocation, useParams } from 'react-router'
 import { useAppData } from '../../../app/providers/useAppData.js'
+import PageHero from '../../../components/common/PageHero.jsx'
 import PlaceholderPage from '../../../components/common/PlaceholderPage.jsx'
 import Button from '../../../components/ui/Button.jsx'
 import ButtonLink from '../../../components/ui/ButtonLink.jsx'
@@ -67,18 +68,20 @@ function TemplateDetailPage() {
         ← Back to templates
       </Link>
 
-      <header className={styles.pageHeader}>
-        <div>
-          <p className={styles.eyebrow}>Document template</p>
-          <h1>{matterType.name}</h1>
-          <p className={styles.introduction}>
-            {matterType.description || 'No description has been provided.'}
-          </p>
-        </div>
-        <ButtonLink to={`/admin/templates/${matterType.id}/documents/new`}>
-          Add document
-        </ButtonLink>
-      </header>
+      <PageHero
+        eyebrow="Document template"
+        title={matterType.name}
+        description={
+          matterType.description || 'No description has been provided.'
+        }
+        contextLabel="Template status"
+        contextValue={templateStatus}
+        action={
+          <ButtonLink to={`/admin/templates/${matterType.id}/documents/new`}>
+            Add document
+          </ButtonLink>
+        }
+      />
 
       <div className={styles.summaryGrid}>
         <article>

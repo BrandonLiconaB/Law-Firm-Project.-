@@ -1,5 +1,6 @@
 import { useNavigate, useParams } from 'react-router'
 import { useAppData } from '../../../app/providers/useAppData.js'
+import PageHero from '../../../components/common/PageHero.jsx'
 import PlaceholderPage from '../../../components/common/PlaceholderPage.jsx'
 import MatterEditForm from '../components/MatterEditForm.jsx'
 import styles from './EditMatterPage.module.css'
@@ -46,11 +47,14 @@ function EditMatterPage() {
 
   return (
     <section className={styles.page}>
-      <p className={styles.eyebrow}>Administrator action</p>
-      <h1>Edit matter</h1>
-      <p className={styles.introduction}>
-        Correct the matter name or replace its matter type and document checklist.
-      </p>
+      <PageHero
+        eyebrow="Administrator action"
+        title="Edit matter"
+        description="Correct the matter name or replace its matter type and document checklist."
+        contextLabel="Current record"
+        contextValue={matter.matterName}
+        tone="indigo"
+      />
 
       <MatterEditForm
         matter={matter}

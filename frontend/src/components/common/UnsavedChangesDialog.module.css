@@ -1,52 +1,67 @@
 .dialog {
-  width: min(calc(100% - 32px), 480px);
+  width: min(calc(100% - 32px), 500px);
+  overflow: hidden;
   padding: 0;
   color: var(--color-text);
   background: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: var(--border-radius-large);
-  box-shadow: var(--shadow-medium);
+  border-radius: 20px;
+  box-shadow: 0 28px 70px rgb(8 24 45 / 30%);
 }
 
 .dialog::backdrop {
-  background: rgb(15 23 42 / 52%);
-  backdrop-filter: blur(2px);
+  background: rgb(9 22 40 / 58%);
+  backdrop-filter: blur(4px);
 }
 
 .content {
-  padding: 24px;
+  position: relative;
+  padding: 30px;
+}
+
+.content::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  height: 5px;
+  background: linear-gradient(90deg, #dc2626, #f97316);
 }
 
 .eyebrow {
-  margin-bottom: 6px;
+  margin-bottom: 7px;
   color: var(--color-danger);
-  font-size: 0.7rem;
-  font-weight: 800;
-  letter-spacing: 0.07em;
+  font-size: 0.68rem;
+  font-weight: 850;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
 }
 
 .content h2 {
-  font-size: 1.35rem;
+  color: var(--color-text);
+  font-size: 1.5rem;
   line-height: 1.2;
+  letter-spacing: -0.03em;
 }
 
 .description {
-  margin-top: 10px;
+  margin-top: 11px;
   color: var(--color-text-muted);
-  font-size: 0.875rem;
+  font-size: 0.84rem;
+  line-height: 1.55;
 }
 
 .actions {
   display: flex;
   justify-content: flex-end;
   gap: 10px;
-  margin-top: 24px;
+  margin-top: 27px;
+  padding-top: 20px;
+  border-top: 1px solid var(--color-border);
 }
 
 @media (max-width: 480px) {
   .content {
-    padding: 20px;
+    padding: 25px 20px 20px;
   }
 
   .actions {

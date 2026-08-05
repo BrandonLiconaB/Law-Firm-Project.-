@@ -1,5 +1,6 @@
 import { Link, useLocation } from 'react-router'
 import { useAppData } from '../../../app/providers/useAppData.js'
+import PageHero from '../../../components/common/PageHero.jsx'
 import ButtonLink from '../../../components/ui/ButtonLink.jsx'
 import {
   getMatterTypeTemplateStatus,
@@ -37,17 +38,17 @@ function MatterTypesPage() {
         </p>
       )}
 
-      <header className={styles.pageHeader}>
-        <div>
-          <p className={styles.eyebrow}>Administration</p>
-          <h1>Matter types</h1>
-          <p className={styles.introduction}>
-            Maintain the categories used to organize matters and their document
-            templates.
-          </p>
-        </div>
-        <ButtonLink to="/admin/matter-types/new">New matter type</ButtonLink>
-      </header>
+      <PageHero
+        eyebrow="Administration"
+        title="Matter types"
+        description="Maintain the categories used to organize matters and their document templates."
+        contextLabel="Catalog"
+        contextValue={`${readyCount} ready for new matters`}
+        tone="indigo"
+        action={
+          <ButtonLink to="/admin/matter-types/new">New matter type</ButtonLink>
+        }
+      />
 
       <div className={styles.summaryGrid}>
         <article>

@@ -242,18 +242,33 @@ function MatterDetail({
 
         <article className={styles.progressCard}>
           <p className={styles.cardLabel}>Document overview</p>
-          <div className={styles.progressHeader}>
-            <strong>
-              {resolvedDocuments} of {documents.length} resolved
-            </strong>
-            <span>{completionPercentage}%</span>
+          <div className={styles.progressOverview}>
+            <div>
+              <strong>
+                {resolvedDocuments} of {documents.length} resolved
+              </strong>
+              <p>
+                {resolvedKeyDocuments} of {keyDocumentCount} key documents resolved
+              </p>
+            </div>
+            <div
+              className={styles.progressRing}
+              style={{ '--completion': `${completionPercentage}%` }}
+              aria-hidden="true"
+            >
+              <span>{completionPercentage}%</span>
+            </div>
           </div>
-          <div className={styles.progressTrack} aria-hidden="true">
+          <div
+            className={styles.progressTrack}
+            role="progressbar"
+            aria-label="Resolved documents"
+            aria-valuemin="0"
+            aria-valuemax="100"
+            aria-valuenow={completionPercentage}
+          >
             <span style={{ width: `${completionPercentage}%` }} />
           </div>
-          <p>
-            {resolvedKeyDocuments} of {keyDocumentCount} key documents resolved
-          </p>
           <p className={styles.nonBlockingNote}>
             Document quantities are informational and never block status changes.
           </p>

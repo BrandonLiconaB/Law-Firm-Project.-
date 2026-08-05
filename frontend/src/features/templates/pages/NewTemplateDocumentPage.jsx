@@ -1,5 +1,6 @@
 import { useNavigate, useParams } from 'react-router'
 import { useAppData } from '../../../app/providers/useAppData.js'
+import PageHero from '../../../components/common/PageHero.jsx'
 import PlaceholderPage from '../../../components/common/PlaceholderPage.jsx'
 import TemplateDocumentForm from '../components/TemplateDocumentForm.jsx'
 import styles from './TemplateDocumentFormPage.module.css'
@@ -40,12 +41,13 @@ function NewTemplateDocumentPage() {
 
   return (
     <section className={styles.page}>
-      <p className={styles.eyebrow}>Template · {matterType.name}</p>
-      <h1>Add document</h1>
-      <p className={styles.introduction}>
-        Define a requirement that will be copied into future matters of this
-        type.
-      </p>
+      <PageHero
+        eyebrow={`Template · ${matterType.name}`}
+        title="Add document"
+        description="Define a requirement that will be copied into future matters of this type."
+        contextLabel="Document order"
+        contextValue={`Added as item ${matterType.documents.length + 1}`}
+      />
 
       <TemplateDocumentForm
         documents={matterType.documents}
