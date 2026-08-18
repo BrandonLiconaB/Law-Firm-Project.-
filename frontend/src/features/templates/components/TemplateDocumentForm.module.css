@@ -28,6 +28,7 @@
 }
 
 .field input,
+.field select,
 .field textarea,
 .quantityField input {
   width: 100%;
@@ -46,6 +47,10 @@
   min-height: 44px;
 }
 
+.field select {
+  min-height: 44px;
+}
+
 .field textarea {
   min-height: 108px;
   resize: vertical;
@@ -57,12 +62,14 @@
 }
 
 .field input:hover,
+.field select:hover,
 .field textarea:hover,
 .quantityField input:hover {
   border-color: var(--color-border-hover);
 }
 
 .field input:focus,
+.field select:focus,
 .field textarea:focus,
 .quantityField input:focus {
   border-color: var(--color-accent);

@@ -9,6 +9,7 @@ import styles from './TemplateDocumentForm.module.css'
 
 function TemplateDocumentForm({
   documents,
+  sections = [],
   initialDocument = null,
   submitLabel,
   cancelTo,
@@ -17,6 +18,9 @@ function TemplateDocumentForm({
   const [name, setName] = useState(initialDocument?.name ?? '')
   const [description, setDescription] = useState(
     initialDocument?.description ?? '',
+  )
+  const [sectionId, setSectionId] = useState(
+    initialDocument?.sectionId ?? '',
   )
   const [isKey, setIsKey] = useState(initialDocument?.isKey ?? false)
   const [tracksQuantity, setTracksQuantity] = useState(
@@ -78,6 +82,7 @@ function TemplateDocumentForm({
     onSubmit({
       name: cleanedName,
       description: description.trim(),
+      sectionId: sectionId || null,
       isKey,
       expectedQuantity: tracksQuantity ? numericQuantity : null,
     })
@@ -129,6 +134,27 @@ function TemplateDocumentForm({
           placeholder="Describe what should be provided."
           onChange={(event) => setDescription(event.target.value)}
         />
+      </div>
+
+      <div className={styles.field}>
+        <label htmlFor="template-document-section">
+          Section <span>Optional</span>
+        </label>
+        <select
+          id="template-document-section"
+          value={sectionId}
+          onChange={(event) => setSectionId(event.target.value)}
+        >
+          <option value="">No section / General documents</option>
+          {sections.map((section) => (
+            <option key={section.id} value={section.id}>
+              {section.name}
+            </option>
+          ))}
+        </select>
+        <small className={styles.helpText}>
+          Sections organize the checklist but do not change document rules.
+        </small>
       </div>
 
       <fieldset className={styles.options}>

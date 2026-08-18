@@ -1,0 +1,70 @@
+.form {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+}
+
+.field {
+  flex: 1;
+}
+
+.field label {
+  display: block;
+  margin-bottom: 7px;
+  color: var(--color-text);
+  font-size: 0.78rem;
+  font-weight: 750;
+}
+
+.field input {
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 12px;
+  color: var(--color-text);
+  background: var(--color-white);
+  border: 1px solid var(--color-border-strong);
+  border-radius: 11px;
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.field input:hover {
+  border-color: var(--color-border-hover);
+}
+
+.field input:focus {
+  border-color: var(--color-accent);
+  box-shadow: var(--focus-ring);
+}
+
+.field input[aria-invalid='true'] {
+  border-color: var(--color-danger);
+}
+
+.errorMessage {
+  display: block;
+  margin-top: 6px;
+  color: var(--color-danger);
+  font-size: 0.7rem;
+  font-weight: 650;
+}
+
+.actions {
+  flex: none;
+  display: flex;
+  gap: 8px;
+}
+
+@media (max-width: 620px) {
+  .form,
+  .actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+}

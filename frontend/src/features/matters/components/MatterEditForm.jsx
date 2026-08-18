@@ -173,7 +173,7 @@ function MatterEditForm({
             The current {matterRecord.documents.length}-document checklist from{' '}
             {currentMatterType?.name ?? 'the current matter type'} will be replaced
             by {selectedMatterType.documents.length} pending documents from{' '}
-            {selectedMatterType.name}.
+            {selectedMatterType.name}, including its current section structure.
           </p>
           <ul>
             <li>Document statuses, received quantities, and comments will be discarded.</li>

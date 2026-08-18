@@ -289,6 +289,7 @@ function MatterDetail({
 
         <DocumentChecklist
           documents={documents}
+          sections={matterRecord.sections ?? []}
           onDocumentChange={handleDocumentChange}
         />
       </section>

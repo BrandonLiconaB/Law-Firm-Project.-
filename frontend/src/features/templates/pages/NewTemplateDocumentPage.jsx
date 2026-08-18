@@ -51,6 +51,7 @@ function NewTemplateDocumentPage() {
 
       <TemplateDocumentForm
         documents={matterType.documents}
+        sections={matterType.sections}
         submitLabel="Add document"
         cancelTo={`/admin/templates/${matterType.id}`}
         onSubmit={handleCreateDocument}

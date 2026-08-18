@@ -31,6 +31,12 @@
   background: var(--color-accent-soft-hover);
 }
 
+.heroActions {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
 .summaryGrid {
   position: relative;
   z-index: 2;
@@ -66,6 +72,212 @@
   color: var(--color-text-muted);
   font-size: 0.7rem;
   font-weight: 700;
+}
+
+.createSectionPanel {
+  display: grid;
+  grid-template-columns: minmax(180px, 0.65fr) minmax(320px, 1.35fr);
+  align-items: center;
+  gap: 28px;
+  margin-top: 28px;
+  padding: 22px;
+  background:
+    linear-gradient(135deg, rgb(59 130 246 / 7%), transparent 52%),
+    var(--color-surface);
+  border: 1px solid var(--color-accent-border);
+  border-radius: var(--border-radius-large);
+  box-shadow: var(--shadow-small);
+}
+
+.formHeading strong {
+  color: var(--color-text);
+  font-size: 0.9rem;
+}
+
+.formHeading p {
+  margin-top: 5px;
+  color: var(--color-text-muted);
+  font-size: 0.72rem;
+  line-height: 1.5;
+}
+
+.sectionGroups {
+  display: grid;
+  gap: 16px;
+  margin-top: 28px;
+}
+
+.sectionPanel {
+  overflow: hidden;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 18px;
+  box-shadow: var(--shadow-medium);
+}
+
+.sectionHeader {
+  min-height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 13px 16px;
+  background:
+    linear-gradient(90deg, rgb(59 130 246 / 7%), transparent 42%),
+    var(--color-surface-tinted);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.sectionToggle {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 6px;
+  color: var(--color-text);
+  text-align: left;
+  background: transparent;
+  border: 0;
+  border-radius: 10px;
+  appearance: none;
+}
+
+.sectionToggle:hover {
+  background: rgb(255 255 255 / 75%);
+}
+
+.sectionChevron {
+  width: 27px;
+  height: 27px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  color: var(--color-accent-strong);
+  font-size: 1.4rem;
+  font-weight: 650;
+  background: var(--color-white);
+  border: 1px solid var(--color-accent-border);
+  border-radius: 9px;
+  transform: rotate(0deg);
+  transition: transform 160ms ease;
+}
+
+.sectionChevron[data-expanded='true'] {
+  transform: rotate(90deg);
+}
+
+.sectionIdentity {
+  min-width: 0;
+}
+
+.sectionIdentity strong,
+.sectionIdentity span {
+  display: block;
+}
+
+.sectionIdentity strong {
+  font-size: 0.92rem;
+  overflow-wrap: anywhere;
+}
+
+.sectionIdentity span {
+  margin-top: 4px;
+  color: var(--color-text-muted);
+  font-size: 0.67rem;
+  font-weight: 650;
+}
+
+.sectionActions {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.sectionActions button {
+  min-height: 34px;
+  padding: 6px 9px;
+  color: var(--color-accent-strong);
+  font-size: 0.69rem;
+  font-weight: 750;
+  background: var(--color-white);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+}
+
+.sectionActions button:hover:not(:disabled) {
+  background: var(--color-accent-soft);
+  border-color: var(--color-accent-border);
+}
+
+.sectionActions button:disabled {
+  color: var(--color-text-soft);
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+.sectionActions .deleteSectionButton {
+  color: var(--color-danger);
+  background: var(--color-danger-soft);
+  border-color: var(--color-danger-border);
+}
+
+.sectionContent {
+  padding: 18px;
+}
+
+.sectionContent .documentList {
+  margin-top: 0;
+}
+
+.sectionContent .documentCard {
+  box-shadow: var(--shadow-small);
+}
+
+.renamePanel {
+  margin-bottom: 16px;
+  padding: 16px;
+  background: var(--color-accent-soft);
+  border: 1px solid var(--color-accent-border);
+  border-radius: 12px;
+}
+
+.sectionDeleteConfirmation {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 15px 18px;
+  background: var(--color-danger-soft);
+  border-bottom: 1px solid var(--color-danger-border);
+}
+
+.sectionDeleteConfirmation strong {
+  color: var(--color-danger);
+  font-size: 0.78rem;
+}
+
+.sectionDeleteConfirmation p {
+  margin-top: 3px;
+  color: var(--color-text-muted);
+  font-size: 0.7rem;
+}
+
+.emptySection {
+  min-height: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 18px 20px;
+  background: var(--color-surface-tinted);
+  border: 1px dashed var(--color-border-strong);
+  border-radius: 12px;
+}
+
+.emptySection p {
+  color: var(--color-text-muted);
+  font-size: 0.75rem;
 }
 
 .documentList {
@@ -127,7 +339,7 @@
   gap: 8px;
 }
 
-.documentNameRow h2 {
+.documentNameRow h3 {
   color: var(--color-text);
   font-size: 0.98rem;
   letter-spacing: -0.01em;
@@ -275,6 +487,13 @@
 }
 
 @media (max-width: 760px) {
+  .heroActions {
+    width: 100%;
+    align-items: stretch;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
   .summaryGrid {
     grid-template-columns: 1fr;
     margin: 16px 0 0;
@@ -282,9 +501,25 @@
 
   .documentHeader,
   .documentActions,
-  .deleteConfirmation {
+  .deleteConfirmation,
+  .sectionDeleteConfirmation {
     align-items: stretch;
     flex-direction: column;
+  }
+
+  .createSectionPanel {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .sectionHeader {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .sectionActions {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
   }
 
   .quantityBadge {
@@ -302,6 +537,21 @@
 }
 
 @media (max-width: 520px) {
+  .heroActions,
+  .sectionActions {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .createSectionPanel,
+  .sectionContent {
+    padding: 16px;
+  }
+
+  .emptySection {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
   .documentCard {
     grid-template-columns: 1fr;
   }
@@ -330,7 +580,8 @@
 }
 
 @media (max-width: 390px) {
-  .confirmationActions {
+  .confirmationActions,
+  .heroActions {
     grid-template-columns: 1fr;
   }
 }

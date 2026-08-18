@@ -1,3 +1,99 @@
+.sectionGroups {
+  display: grid;
+  gap: 16px;
+}
+
+.documentSection {
+  overflow: hidden;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 18px;
+  box-shadow: 0 10px 28px rgb(16 34 59 / 7%);
+}
+
+.sectionToggle {
+  width: 100%;
+  min-height: 74px;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 13px;
+  padding: 14px 17px;
+  color: var(--color-text);
+  text-align: left;
+  background:
+    linear-gradient(90deg, rgb(59 130 246 / 8%), transparent 44%),
+    var(--color-surface-tinted);
+  border: 0;
+  appearance: none;
+  transition: background-color 160ms ease;
+}
+
+.sectionToggle:hover {
+  background-color: var(--color-accent-soft);
+}
+
+.sectionChevron {
+  width: 29px;
+  height: 29px;
+  display: grid;
+  place-items: center;
+  color: var(--color-accent-strong);
+  font-size: 1.45rem;
+  font-weight: 650;
+  background: var(--color-white);
+  border: 1px solid var(--color-accent-border);
+  border-radius: 9px;
+  transform: rotate(0deg);
+  transition: transform 160ms ease;
+}
+
+.sectionChevron[data-expanded='true'] {
+  transform: rotate(90deg);
+}
+
+.sectionIdentity {
+  min-width: 0;
+}
+
+.sectionIdentity strong,
+.sectionIdentity span {
+  display: block;
+}
+
+.sectionIdentity strong {
+  font-size: 0.91rem;
+  overflow-wrap: anywhere;
+}
+
+.sectionIdentity span {
+  margin-top: 4px;
+  color: var(--color-text-muted);
+  font-size: 0.68rem;
+  font-weight: 650;
+}
+
+.sectionProgress {
+  min-width: 54px;
+  padding: 7px 10px;
+  color: var(--color-accent-strong);
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-align: center;
+  background: var(--color-white);
+  border: 1px solid var(--color-accent-border);
+  border-radius: 999px;
+}
+
+.sectionContent {
+  padding: 16px;
+  border-top: 1px solid var(--color-border);
+}
+
+.sectionContent .tableWrapper {
+  box-shadow: none;
+}
+
 .tableWrapper {
   overflow-x: auto;
   background: var(--color-surface);
@@ -233,6 +329,10 @@
     gap: 14px;
   }
 
+  .sectionContent {
+    background: var(--color-surface-tinted);
+  }
+
   .documentCard {
     --document-state: #94a3b8;
     position: relative;
@@ -302,6 +402,19 @@
 }
 
 @media (max-width: 520px) {
+  .sectionToggle {
+    grid-template-columns: auto minmax(0, 1fr);
+    padding: 13px 14px;
+  }
+
+  .sectionProgress {
+    display: none;
+  }
+
+  .sectionContent {
+    padding: 12px;
+  }
+
   .documentCard {
     padding: 18px;
   }

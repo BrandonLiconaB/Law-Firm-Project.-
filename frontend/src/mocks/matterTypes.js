@@ -4,6 +4,10 @@ export const matterTypes = [
     name: 'Family Petition',
     description:
       'Provisional document template for a family-based immigration matter.',
+    sections: [
+      { id: 'family-petition-petitioner', name: 'Petitioner' },
+      { id: 'family-petition-beneficiary', name: 'Beneficiary' },
+    ],
     documents: [
       {
         id: 'passport-biographic-page',
@@ -11,6 +15,7 @@ export const matterTypes = [
         description: 'Clear copy of the current passport biographic page.',
         isKey: true,
         expectedQuantity: null,
+        sectionId: 'family-petition-beneficiary',
       },
       {
         id: 'birth-certificate',
@@ -18,6 +23,7 @@ export const matterTypes = [
         description: 'Birth certificate and certified translation, when required.',
         isKey: true,
         expectedQuantity: null,
+        sectionId: 'family-petition-beneficiary',
       },
       {
         id: 'petitioner-status-evidence',
@@ -25,6 +31,7 @@ export const matterTypes = [
         description: 'Evidence of U.S. citizenship or permanent resident status.',
         isKey: true,
         expectedQuantity: null,
+        sectionId: 'family-petition-petitioner',
       },
       {
         id: 'relationship-evidence',
@@ -32,6 +39,7 @@ export const matterTypes = [
         description: 'Civil records or other evidence supporting the relationship.',
         isKey: true,
         expectedQuantity: null,
+        sectionId: null,
       },
       {
         id: 'shared-residence-evidence',
@@ -39,6 +47,7 @@ export const matterTypes = [
         description: 'Lease, deed, utility bills, or comparable residence evidence.',
         isKey: false,
         expectedQuantity: null,
+        sectionId: null,
       },
       {
         id: 'support-letters',
@@ -46,6 +55,7 @@ export const matterTypes = [
         description: 'Letters from family members, friends, or community contacts.',
         isKey: false,
         expectedQuantity: 5,
+        sectionId: null,
       },
       {
         id: 'passport-photos',
@@ -53,6 +63,7 @@ export const matterTypes = [
         description: 'Recent passport-style photographs.',
         isKey: false,
         expectedQuantity: 4,
+        sectionId: 'family-petition-beneficiary',
       },
     ],
   },
@@ -61,6 +72,7 @@ export const matterTypes = [
     name: 'Citizenship',
     description:
       'Provisional document template for a naturalization application.',
+    sections: [],
     documents: [
       {
         id: 'permanent-resident-card',
@@ -118,6 +130,11 @@ export const matterTypes = [
     name: 'Adjustment of Status',
     description:
       'Provisional document template for an adjustment of status matter.',
+    sections: [
+      { id: 'adjustment-petitioner', name: 'Petitioner' },
+      { id: 'adjustment-beneficiary', name: 'Beneficiary' },
+      { id: 'adjustment-financial-sponsor', name: 'Financial sponsor' },
+    ],
     documents: [
       {
         id: 'passport-biographic-page',
@@ -125,6 +142,7 @@ export const matterTypes = [
         description: 'Clear copy of the current passport biographic page.',
         isKey: true,
         expectedQuantity: null,
+        sectionId: 'adjustment-beneficiary',
       },
       {
         id: 'birth-certificate',
@@ -132,6 +150,7 @@ export const matterTypes = [
         description: 'Birth certificate and certified translation, when required.',
         isKey: true,
         expectedQuantity: null,
+        sectionId: 'adjustment-beneficiary',
       },
       {
         id: 'i-94',
@@ -139,6 +158,7 @@ export const matterTypes = [
         description: 'Most recent arrival and departure record.',
         isKey: true,
         expectedQuantity: null,
+        sectionId: 'adjustment-beneficiary',
       },
       {
         id: 'eligibility-evidence',
@@ -146,6 +166,7 @@ export const matterTypes = [
         description: 'Approval notice or relationship evidence supporting eligibility.',
         isKey: true,
         expectedQuantity: null,
+        sectionId: 'adjustment-petitioner',
       },
       {
         id: 'financial-support-evidence',
@@ -153,6 +174,7 @@ export const matterTypes = [
         description: 'Tax and employment records from the financial sponsor.',
         isKey: false,
         expectedQuantity: 3,
+        sectionId: 'adjustment-financial-sponsor',
       },
       {
         id: 'medical-examination',
@@ -160,6 +182,7 @@ export const matterTypes = [
         description: 'Sealed medical examination, when available.',
         isKey: false,
         expectedQuantity: null,
+        sectionId: 'adjustment-beneficiary',
       },
       {
         id: 'passport-photos',
@@ -167,6 +190,7 @@ export const matterTypes = [
         description: 'Recent passport-style photographs.',
         isKey: false,
         expectedQuantity: 6,
+        sectionId: 'adjustment-beneficiary',
       },
     ],
   },
@@ -175,6 +199,7 @@ export const matterTypes = [
     name: 'Work Authorization',
     description:
       'Provisional document template for an employment authorization matter.',
+    sections: [],
     documents: [
       {
         id: 'photo-identification',

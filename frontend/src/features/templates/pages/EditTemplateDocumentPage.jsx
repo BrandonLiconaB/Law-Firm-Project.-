@@ -61,6 +61,7 @@ function EditTemplateDocumentPage() {
 
       <TemplateDocumentForm
         documents={matterType.documents}
+        sections={matterType.sections}
         initialDocument={document}
         submitLabel="Save changes"
         cancelTo={`/admin/templates/${matterType.id}`}

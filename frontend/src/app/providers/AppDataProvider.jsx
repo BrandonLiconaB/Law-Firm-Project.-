@@ -13,6 +13,10 @@ import {
   isTemplateDocumentNameDuplicate,
 } from '../../features/templates/utils/normalizeTemplateDocumentName.js'
 import {
+  cleanTemplateSectionName,
+  isTemplateSectionNameDuplicate,
+} from '../../features/templates/utils/normalizeTemplateSectionName.js'
+import {
   cleanUserName,
   isUserEmailDuplicate,
   isUserEmailValid,
@@ -29,33 +33,83 @@ import { AppDataContext } from './AppDataContext.js'
 
 function createInitialMatterRecords() {
   return Object.fromEntries(
-    initialMatters.map((matter) => [
-      matter.id,
-      {
-        documents: getMockMatterDocuments(matter.status),
-        history: getMockMatterHistory(matter),
-      },
-    ]),
+    initialMatters.map((matter) => {
+      const matterType = initialMatterTypes.find(
+        (currentMatterType) => currentMatterType.id === matter.matterTypeId,
+      )
+      const sections = createSectionsFromMatterType(matter.id, matterType)
+      const sectionIdsByTemplateId = new Map(
+        sections.map((section) => [section.templateSectionId, section.id]),
+      )
+      const documents = getMockMatterDocuments(matter.status).map((document) => {
+        const templateDocument = matterType?.documents.find(
+          (currentDocument) =>
+            currentDocument.name.toLocaleLowerCase('en-US') ===
+            document.name.toLocaleLowerCase('en-US'),
+        )
+
+        return {
+          ...document,
+          sectionId:
+            sectionIdsByTemplateId.get(templateDocument?.sectionId) ?? null,
+        }
+      })
+
+      return [
+        matter.id,
+        {
+          sections: sections.map((section) => ({
+            id: section.id,
+            name: section.name,
+          })),
+          documents,
+          history: getMockMatterHistory(matter),
+        },
+      ]
+    }),
   )
 }
 
 function createInitialMatterTypes() {
   return initialMatterTypes.map((matterType) => ({
     ...matterType,
-    documents: matterType.documents.map((document) => ({ ...document })),
+    sections: (matterType.sections ?? []).map((section) => ({ ...section })),
+    documents: matterType.documents.map((document) => ({
+      ...document,
+      sectionId: document.sectionId ?? null,
+    })),
   }))
 }
 
-function createDocumentsFromMatterType(matterId, matterType, updatedAt) {
-  return matterType.documents.map((document) => ({
+function createSectionsFromMatterType(matterId, matterType) {
+  return (matterType?.sections ?? []).map((section) => ({
+    id: `${matterId}-${section.id}`,
+    templateSectionId: section.id,
+    name: section.name,
+  }))
+}
+
+function createMatterSnapshot(matterId, matterType, updatedAt) {
+  const sections = createSectionsFromMatterType(matterId, matterType)
+  const sectionIdsByTemplateId = new Map(
+    sections.map((section) => [section.templateSectionId, section.id]),
+  )
+  const matterSections = sections.map((section) => ({
+    id: section.id,
+    name: section.name,
+  }))
+  const documents = matterType.documents.map((document) => ({
     ...document,
     id: `${matterId}-${document.id}`,
+    sectionId: sectionIdsByTemplateId.get(document.sectionId) ?? null,
     status: 'Pending',
     receivedQuantity: document.expectedQuantity === null ? null : 0,
     comment: '',
     updatedBy: 'Administrator',
     updatedAt,
   }))
+
+  return { sections: matterSections, documents }
 }
 
 function AppDataProvider({ children }) {
@@ -92,7 +146,7 @@ function AppDataProvider({ children }) {
       statusUpdatedAt: now,
       updatedAt: now.slice(0, 10),
     }
-    const documents = createDocumentsFromMatterType(
+    const snapshot = createMatterSnapshot(
       matterId,
       matterType,
       now,
@@ -112,7 +166,8 @@ function AppDataProvider({ children }) {
     setMatterRecords((currentRecords) => ({
       ...currentRecords,
       [matterId]: {
-        documents,
+        sections: snapshot.sections,
+        documents: snapshot.documents,
         history,
       },
     }))
@@ -164,6 +219,7 @@ function AppDataProvider({ children }) {
     )
 
     if (matterTypeChanged) {
+      const snapshot = createMatterSnapshot(matterId, nextMatterType, now)
       const statusResetEntry =
         currentMatter.status === 'Pending Documents'
           ? []
@@ -181,11 +237,8 @@ function AppDataProvider({ children }) {
       setMatterRecords((currentRecords) => ({
         ...currentRecords,
         [matterId]: {
-          documents: createDocumentsFromMatterType(
-            matterId,
-            nextMatterType,
-            now,
-          ),
+          sections: snapshot.sections,
+          documents: snapshot.documents,
           history: [
             ...statusResetEntry,
             ...currentRecord.history.map((entry) => ({ ...entry })),
@@ -214,6 +267,7 @@ function AppDataProvider({ children }) {
       id: `matter-type-${Date.now()}`,
       name: cleanedName,
       description: description.trim(),
+      sections: [],
       documents: [],
     }
 
@@ -261,11 +315,16 @@ function AppDataProvider({ children }) {
       documentData.expectedQuantity === null ||
       (Number.isInteger(documentData.expectedQuantity) &&
         documentData.expectedQuantity > 0)
+    const sectionId = documentData.sectionId || null
+    const hasValidSection =
+      sectionId === null ||
+      (matterType?.sections ?? []).some((section) => section.id === sectionId)
 
     if (
       !matterType ||
       !cleanedName ||
       !hasValidQuantity ||
+      !hasValidSection ||
       isTemplateDocumentNameDuplicate(matterType.documents, cleanedName)
     ) {
       return null
@@ -277,6 +336,7 @@ function AppDataProvider({ children }) {
       description: documentData.description.trim(),
       isKey: documentData.isKey,
       expectedQuantity: documentData.expectedQuantity,
+      sectionId,
     }
 
     setMatterTypes((currentMatterTypes) =>
@@ -304,12 +364,17 @@ function AppDataProvider({ children }) {
       documentData.expectedQuantity === null ||
       (Number.isInteger(documentData.expectedQuantity) &&
         documentData.expectedQuantity > 0)
+    const sectionId = documentData.sectionId || null
+    const hasValidSection =
+      sectionId === null ||
+      (matterType?.sections ?? []).some((section) => section.id === sectionId)
 
     if (
       !matterType ||
       !currentDocument ||
       !cleanedName ||
       !hasValidQuantity ||
+      !hasValidSection ||
       isTemplateDocumentNameDuplicate(
         matterType.documents,
         cleanedName,
@@ -325,6 +390,7 @@ function AppDataProvider({ children }) {
       description: documentData.description.trim(),
       isKey: documentData.isKey,
       expectedQuantity: documentData.expectedQuantity,
+      sectionId,
     }
 
     setMatterTypes((currentMatterTypes) =>
@@ -332,9 +398,17 @@ function AppDataProvider({ children }) {
         currentMatterType.id === matterTypeId
           ? {
               ...currentMatterType,
-              documents: currentMatterType.documents.map((document) =>
-                document.id === documentId ? updatedDocument : document,
-              ),
+              documents:
+                currentDocument.sectionId === updatedDocument.sectionId
+                  ? currentMatterType.documents.map((document) =>
+                      document.id === documentId ? updatedDocument : document,
+                    )
+                  : [
+                      ...currentMatterType.documents.filter(
+                        (document) => document.id !== documentId,
+                      ),
+                      updatedDocument,
+                    ],
             }
           : currentMatterType,
       ),
@@ -373,8 +447,171 @@ function AppDataProvider({ children }) {
     const matterType = matterTypes.find(
       (currentMatterType) => currentMatterType.id === matterTypeId,
     )
+    const currentDocument = matterType?.documents.find(
+      (document) => document.id === documentId,
+    )
+    const groupDocuments = matterType?.documents.filter(
+      (document) =>
+        (document.sectionId ?? null) ===
+        (currentDocument?.sectionId ?? null),
+    )
+    const currentGroupIndex = groupDocuments?.findIndex(
+      (document) => document.id === documentId,
+    )
+    const targetGroupIndex =
+      direction === 'up' ? currentGroupIndex - 1 : currentGroupIndex + 1
+    const targetDocument = groupDocuments?.[targetGroupIndex]
     const currentIndex = matterType?.documents.findIndex(
       (document) => document.id === documentId,
+    )
+    const targetIndex = matterType?.documents.findIndex(
+      (document) => document.id === targetDocument?.id,
+    )
+
+    if (
+      !matterType ||
+      !currentDocument ||
+      currentGroupIndex === undefined ||
+      currentGroupIndex < 0 ||
+      targetGroupIndex < 0 ||
+      targetGroupIndex >= groupDocuments.length ||
+      currentIndex === undefined ||
+      currentIndex < 0 ||
+      targetIndex === undefined ||
+      targetIndex < 0 ||
+      targetIndex >= matterType.documents.length
+    ) {
+      return false
+    }
+
+    const reorderedDocuments = [...matterType.documents]
+    ;[reorderedDocuments[currentIndex], reorderedDocuments[targetIndex]] = [
+      reorderedDocuments[targetIndex],
+      reorderedDocuments[currentIndex],
+    ]
+
+    setMatterTypes((currentMatterTypes) =>
+      currentMatterTypes.map((currentMatterType) =>
+        currentMatterType.id === matterTypeId
+          ? { ...currentMatterType, documents: reorderedDocuments }
+          : currentMatterType,
+      ),
+    )
+    return true
+  }
+
+  function createTemplateSection(matterTypeId, sectionName) {
+    const matterType = matterTypes.find(
+      (currentMatterType) => currentMatterType.id === matterTypeId,
+    )
+    const cleanedName = cleanTemplateSectionName(sectionName)
+
+    if (
+      !matterType ||
+      !cleanedName ||
+      isTemplateSectionNameDuplicate(
+        matterType.sections ?? [],
+        cleanedName,
+      )
+    ) {
+      return null
+    }
+
+    const section = {
+      id: `${matterTypeId}-section-${Date.now()}`,
+      name: cleanedName,
+    }
+
+    setMatterTypes((currentMatterTypes) =>
+      currentMatterTypes.map((currentMatterType) =>
+        currentMatterType.id === matterTypeId
+          ? {
+              ...currentMatterType,
+              sections: [...(currentMatterType.sections ?? []), section],
+            }
+          : currentMatterType,
+      ),
+    )
+    return section
+  }
+
+  function updateTemplateSection(matterTypeId, sectionId, sectionName) {
+    const matterType = matterTypes.find(
+      (currentMatterType) => currentMatterType.id === matterTypeId,
+    )
+    const currentSection = matterType?.sections?.find(
+      (section) => section.id === sectionId,
+    )
+    const cleanedName = cleanTemplateSectionName(sectionName)
+
+    if (
+      !matterType ||
+      !currentSection ||
+      !cleanedName ||
+      isTemplateSectionNameDuplicate(
+        matterType.sections,
+        cleanedName,
+        sectionId,
+      )
+    ) {
+      return null
+    }
+
+    const updatedSection = { ...currentSection, name: cleanedName }
+
+    setMatterTypes((currentMatterTypes) =>
+      currentMatterTypes.map((currentMatterType) =>
+        currentMatterType.id === matterTypeId
+          ? {
+              ...currentMatterType,
+              sections: currentMatterType.sections.map((section) =>
+                section.id === sectionId ? updatedSection : section,
+              ),
+            }
+          : currentMatterType,
+      ),
+    )
+    return updatedSection
+  }
+
+  function deleteTemplateSection(matterTypeId, sectionId) {
+    const matterType = matterTypes.find(
+      (currentMatterType) => currentMatterType.id === matterTypeId,
+    )
+    const sectionExists = matterType?.sections?.some(
+      (section) => section.id === sectionId,
+    )
+
+    if (!matterType || !sectionExists) {
+      return false
+    }
+
+    setMatterTypes((currentMatterTypes) =>
+      currentMatterTypes.map((currentMatterType) =>
+        currentMatterType.id === matterTypeId
+          ? {
+              ...currentMatterType,
+              sections: currentMatterType.sections.filter(
+                (section) => section.id !== sectionId,
+              ),
+              documents: currentMatterType.documents.map((document) =>
+                document.sectionId === sectionId
+                  ? { ...document, sectionId: null }
+                  : document,
+              ),
+            }
+          : currentMatterType,
+      ),
+    )
+    return true
+  }
+
+  function moveTemplateSection(matterTypeId, sectionId, direction) {
+    const matterType = matterTypes.find(
+      (currentMatterType) => currentMatterType.id === matterTypeId,
+    )
+    const currentIndex = matterType?.sections?.findIndex(
+      (section) => section.id === sectionId,
     )
     const targetIndex =
       direction === 'up' ? currentIndex - 1 : currentIndex + 1
@@ -384,19 +621,21 @@ function AppDataProvider({ children }) {
       currentIndex === undefined ||
       currentIndex < 0 ||
       targetIndex < 0 ||
-      targetIndex >= matterType.documents.length
+      targetIndex >= matterType.sections.length
     ) {
       return false
     }
 
-    const reorderedDocuments = [...matterType.documents]
-    const [document] = reorderedDocuments.splice(currentIndex, 1)
-    reorderedDocuments.splice(targetIndex, 0, document)
+    const reorderedSections = [...matterType.sections]
+    ;[reorderedSections[currentIndex], reorderedSections[targetIndex]] = [
+      reorderedSections[targetIndex],
+      reorderedSections[currentIndex],
+    ]
 
     setMatterTypes((currentMatterTypes) =>
       currentMatterTypes.map((currentMatterType) =>
         currentMatterType.id === matterTypeId
-          ? { ...currentMatterType, documents: reorderedDocuments }
+          ? { ...currentMatterType, sections: reorderedSections }
           : currentMatterType,
       ),
     )
@@ -473,6 +712,7 @@ function AppDataProvider({ children }) {
     setMatterRecords((currentRecords) => ({
       ...currentRecords,
       [matterId]: {
+        ...currentRecords[matterId],
         documents: changes.documents.map((document) => ({ ...document })),
         history: changes.history.map((entry) => ({ ...entry })),
       },
@@ -492,6 +732,10 @@ function AppDataProvider({ children }) {
     updateTemplateDocument,
     deleteTemplateDocument,
     moveTemplateDocument,
+    createTemplateSection,
+    updateTemplateSection,
+    deleteTemplateSection,
+    moveTemplateSection,
     createUser,
     updateUser,
     saveMatterChanges,
