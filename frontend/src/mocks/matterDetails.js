@@ -67,9 +67,9 @@ const baseDocuments = [
     description: 'Letters from family members, friends, or community contacts.',
     isKey: false,
     status: 'Received',
-    expectedQuantity: 10,
-    receivedQuantity: 6,
-    comment: 'Received six letters. The client does not expect to obtain the remaining four.',
+    expectedQuantity: 5,
+    receivedQuantity: 4,
+    comment: 'Received four letters: two from Carlos, one from Juan, and one from Pedro.',
     updatedBy: 'Administrator',
     updatedAt: '2026-07-15T13:40:00',
   },
@@ -99,12 +99,24 @@ const baseDocuments = [
   },
 ]
 
-export function getMockMatterDocuments(matterStatus) {
+export function getMockMatterDocuments(templateDocuments, matterStatus) {
   const shouldResolveKeyDocuments = matterStatus !== 'Pending Documents'
   const shouldResolveAllDocuments =
     matterStatus === 'Ready to Draft' || !AUTOMATIC_MATTER_STATUSES.includes(matterStatus)
 
-  return baseDocuments.map((document) => {
+  return templateDocuments.map((templateDocument) => {
+    // Only sample tracking is seeded by name; real synchronization always uses IDs.
+    const sample = baseDocuments.find((item) => item.name === templateDocument.name)
+    const document = {
+      ...templateDocument,
+      status: sample?.status ?? 'Pending',
+      receivedQuantity: templateDocument.expectedQuantity === null
+        ? null
+        : sample?.receivedQuantity ?? 0,
+      comment: sample?.comment ?? '',
+      updatedBy: sample?.updatedBy ?? 'Administrator',
+      updatedAt: sample?.updatedAt ?? templateDocument.updatedAt,
+    }
     const shouldResolveDocument =
       (shouldResolveKeyDocuments && document.isKey) ||
       (shouldResolveAllDocuments && document.status === 'Pending')

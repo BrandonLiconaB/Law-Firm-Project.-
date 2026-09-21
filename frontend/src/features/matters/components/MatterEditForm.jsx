@@ -9,6 +9,7 @@ import {
 import {
   cleanMatterName,
   isMatterNameDuplicate,
+  isMatterNumberValid,
 } from '../utils/normalizeMatterName.js'
 import styles from './MatterEditForm.module.css'
 
@@ -50,12 +51,12 @@ function MatterEditForm({
     const cleanedMatterName = cleanMatterName(matterName)
     const nextErrors = {}
 
-    if (!cleanedMatterName) {
-      nextErrors.matterName = 'Matter name is required.'
+    if (!isMatterNumberValid(cleanedMatterName)) {
+      nextErrors.matterName = 'Enter exactly 6 digits (0–9).'
     } else if (
       isMatterNameDuplicate(matters, cleanedMatterName, matter.id)
     ) {
-      nextErrors.matterName = 'This matter name is already in use.'
+      nextErrors.matterName = 'This matter number is already in use.'
     }
 
     if (!selectedMatterType) {
@@ -92,18 +93,20 @@ function MatterEditForm({
   return (
     <form className={styles.form} noValidate onSubmit={handleSubmit}>
       <div className={styles.adminNotice}>
-        <strong>Administrator action</strong>
+        <strong>Matter type changes are administrator-only</strong>
         <p>
-          Access restrictions will be enforced by the backend. This frontend
-          preview does not apply user permissions.
+          Any user can correct the matter number. Only the administrator will be
+          able to change its type. These permissions will be enforced by the backend.
         </p>
       </div>
 
       <div className={styles.field}>
-        <label htmlFor="edit-matter-name">Matter name</label>
+        <label htmlFor="edit-matter-name">Matter number</label>
         <input
           id="edit-matter-name"
           type="text"
+          inputMode="numeric"
+          pattern="[0-9]{6}"
           value={matterName}
           autoComplete="off"
           aria-describedby={
@@ -121,7 +124,7 @@ function MatterEditForm({
           </small>
         ) : (
           <small id="edit-matter-name-help" className={styles.helpText}>
-            Matter names must remain unique across the system.
+            Enter a unique 6-digit number. Leading zeros are preserved.
           </small>
         )}
       </div>
@@ -176,7 +179,7 @@ function MatterEditForm({
             {selectedMatterType.name}, including its current section structure.
           </p>
           <ul>
-            <li>Document statuses, received quantities, and comments will be discarded.</li>
+            <li>Document statuses, received quantities, comments, and previous requirements will be discarded.</li>
             <li>The workflow will return to Pending Documents and Automatic.</li>
             <li>The previous status history will remain available.</li>
           </ul>

@@ -1,7 +1,7 @@
 export const matters = [
   {
     id: 'matter-001',
-    matterName: 'Torres, Elena (402424)',
+    matterName: '402424',
     matterTypeId: 'family-petition',
     status: 'Pending Documents',
     statusSource: 'Automatic',
@@ -10,7 +10,7 @@ export const matters = [
   },
   {
     id: 'matter-002',
-    matterName: 'Johnson, Marcus (402419)',
+    matterName: '402419',
     matterTypeId: 'citizenship',
     status: 'Ready to Start Drafting',
     statusSource: 'Automatic',
@@ -19,7 +19,7 @@ export const matters = [
   },
   {
     id: 'matter-003',
-    matterName: 'Hernandez, Isabel (402407)',
+    matterName: '402407',
     matterTypeId: 'adjustment-of-status',
     status: 'Ready to Draft',
     statusSource: 'Automatic',
@@ -28,7 +28,7 @@ export const matters = [
   },
   {
     id: 'matter-004',
-    matterName: 'Lee, David (402398)',
+    matterName: '402398',
     matterTypeId: 'work-authorization',
     status: 'Ready to R/S',
     statusSource: 'Manual',
@@ -37,7 +37,7 @@ export const matters = [
   },
   {
     id: 'matter-005',
-    matterName: 'Rivera, Camila (402387)',
+    matterName: '402387',
     matterTypeId: 'family-petition',
     status: 'Pending Corrections',
     statusSource: 'Manual',
@@ -46,7 +46,7 @@ export const matters = [
   },
   {
     id: 'matter-006',
-    matterName: 'Williams, Noah (402376)',
+    matterName: '402376',
     matterTypeId: 'citizenship',
     status: 'Corrections Ready',
     statusSource: 'Manual',
@@ -55,7 +55,7 @@ export const matters = [
   },
   {
     id: 'matter-007',
-    matterName: 'Martinez, Ana (402361)',
+    matterName: '402361',
     matterTypeId: 'adjustment-of-status',
     status: 'Accepted',
     statusSource: 'Manual',
@@ -64,7 +64,7 @@ export const matters = [
   },
   {
     id: 'matter-008',
-    matterName: 'Wilson, James (402342)',
+    matterName: '402342',
     matterTypeId: 'work-authorization',
     status: 'Sent',
     statusSource: 'Manual',

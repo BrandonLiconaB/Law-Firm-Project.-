@@ -129,8 +129,8 @@ function DocumentTemplatePreview({ matterType }) {
       )}
 
       <p className={styles.snapshotNote}>
-        This list will be copied into the matter and will not depend on later
-        template changes.
+        Template changes will update this checklist while preserving document
+        statuses, received quantities, and comments.
       </p>
     </aside>
   )

@@ -36,7 +36,7 @@ function TemplatesPage() {
       <PageHero
         eyebrow="Administration"
         title="Templates"
-        description="Configure the document requirements copied into every new matter."
+        description="Configure document requirements shared by new and existing matters."
         contextLabel="Template library"
         contextValue={`${totalDocumentCount} document requirements`}
       />

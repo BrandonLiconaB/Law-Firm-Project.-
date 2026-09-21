@@ -88,8 +88,9 @@ function TemplateDocumentList({
                 <div>
                   <strong>Remove this document?</strong>
                   <p>
-                    It will disappear from this template only. Existing matters
-                    will keep their current document list.
+                    Existing matters will retain its tracking under Previous
+                    requirements. It will no longer affect their active checklist
+                    or automatic status. New matters will not include it.
                   </p>
                 </div>
                 <div className={styles.confirmationActions}>
@@ -351,7 +352,7 @@ function TemplateDetailPage() {
       setNotice(
         `Section “${section.name}” removed. ${documentCount} ${
           documentCount === 1 ? 'document was' : 'documents were'
-        } moved to General documents. Existing matters were not changed.`,
+        } moved to General documents. Existing matters were synchronized.`,
       )
     }
   }
@@ -368,7 +369,7 @@ function TemplateDetailPage() {
     if (wasDeleted) {
       setPendingDocumentDeletionId(null)
       setNotice(
-        'Document removed from this template. Existing matters were not changed.',
+        'Document removed. Its tracking is preserved under Previous requirements in existing matters.',
       )
     }
   }
@@ -516,7 +517,9 @@ function TemplateDetailPage() {
       )}
 
       <p className={styles.snapshotNote}>
-        Template changes apply only to matters created after the change.
+        Changes synchronize with all matters of this type, preserving their
+        document tracking. Automatic statuses are recalculated; manual statuses
+        stay unchanged, including Accepted and Sent.
       </p>
     </section>
   )

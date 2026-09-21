@@ -18,7 +18,13 @@ function formatDateTime(dateTime) {
 
 function QuantityField({ document, onDocumentChange }) {
   if (document.expectedQuantity === null) {
-    return <span className={styles.notCounted}>Not counted</span>
+    return (
+      <span className={styles.notCounted}>
+        {document.receivedQuantity === null
+          ? 'Not counted'
+          : `${document.receivedQuantity} previously recorded · not counted`}
+      </span>
+    )
   }
 
   return (
@@ -264,6 +270,10 @@ function DocumentSection({ group, onDocumentChange }) {
 }
 
 function DocumentChecklist({ documents, sections = [], onDocumentChange }) {
+  if (documents.length === 0) {
+    return <p>No active requirements. Add documents to this matter type’s template.</p>
+  }
+
   if (sections.length === 0) {
     return (
       <DocumentCollection

@@ -123,7 +123,7 @@ function MattersPage() {
               id="matter-search"
               type="search"
               value={search}
-              placeholder="Name or matter identifier"
+              placeholder="Search by matter number"
               onChange={(event) => setSearch(event.target.value)}
             />
           </div>
@@ -186,7 +186,7 @@ function MattersPage() {
             <table>
               <thead>
                 <tr>
-                  <th>Matter name</th>
+                  <th>Matter number</th>
                   <th>Matter type</th>
                   <th>Status</th>
                   <th>Last updated</th>
@@ -225,7 +225,7 @@ function MattersPage() {
               <article className={styles.matterCard} key={matter.id}>
                 <div className={styles.cardTopRow}>
                   <div>
-                    <p className={styles.cardLabel}>Matter name</p>
+                    <p className={styles.cardLabel}>Matter number</p>
                     <Link className={styles.matterLink} to={`/matters/${matter.id}`}>
                       {matter.matterName}
                     </Link>

@@ -1,5 +1,9 @@
 export function cleanMatterName(value) {
-  return value.trim().replace(/\s+/g, ' ')
+  return value.trim()
+}
+
+export function isMatterNumberValid(value) {
+  return /^[0-9]{6}$/.test(value)
 }
 
 export function normalizeMatterName(value) {

@@ -7,7 +7,12 @@ import { isMatterTypeReady } from '../../features/matterTypes/utils/matterTypeTe
 import {
   cleanMatterName,
   isMatterNameDuplicate,
+  isMatterNumberValid,
 } from '../../features/matters/utils/normalizeMatterName.js'
+import {
+  applyTemplateChanges,
+  createMatterSnapshot,
+} from '../../features/matters/utils/synchronizeMatterTemplate.js'
 import {
   cleanTemplateDocumentName,
   isTemplateDocumentNameDuplicate,
@@ -37,31 +42,13 @@ function createInitialMatterRecords() {
       const matterType = initialMatterTypes.find(
         (currentMatterType) => currentMatterType.id === matter.matterTypeId,
       )
-      const sections = createSectionsFromMatterType(matter.id, matterType)
-      const sectionIdsByTemplateId = new Map(
-        sections.map((section) => [section.templateSectionId, section.id]),
-      )
-      const documents = getMockMatterDocuments(matter.status).map((document) => {
-        const templateDocument = matterType?.documents.find(
-          (currentDocument) =>
-            currentDocument.name.toLocaleLowerCase('en-US') ===
-            document.name.toLocaleLowerCase('en-US'),
-        )
-
-        return {
-          ...document,
-          sectionId:
-            sectionIdsByTemplateId.get(templateDocument?.sectionId) ?? null,
-        }
-      })
+      const snapshot = createMatterSnapshot(matter.id, matterType, matter.statusUpdatedAt)
+      const documents = getMockMatterDocuments(snapshot.documents, matter.status)
 
       return [
         matter.id,
         {
-          sections: sections.map((section) => ({
-            id: section.id,
-            name: section.name,
-          })),
+          ...snapshot,
           documents,
           history: getMockMatterHistory(matter),
         },
@@ -81,46 +68,29 @@ function createInitialMatterTypes() {
   }))
 }
 
-function createSectionsFromMatterType(matterId, matterType) {
-  return (matterType?.sections ?? []).map((section) => ({
-    id: `${matterId}-${section.id}`,
-    templateSectionId: section.id,
-    name: section.name,
-  }))
-}
-
-function createMatterSnapshot(matterId, matterType, updatedAt) {
-  const sections = createSectionsFromMatterType(matterId, matterType)
-  const sectionIdsByTemplateId = new Map(
-    sections.map((section) => [section.templateSectionId, section.id]),
-  )
-  const matterSections = sections.map((section) => ({
-    id: section.id,
-    name: section.name,
-  }))
-  const documents = matterType.documents.map((document) => ({
-    ...document,
-    id: `${matterId}-${document.id}`,
-    sectionId: sectionIdsByTemplateId.get(document.sectionId) ?? null,
-    status: 'Pending',
-    receivedQuantity: document.expectedQuantity === null ? null : 0,
-    comment: '',
-    updatedBy: 'Administrator',
-    updatedAt,
-  }))
-
-  return { sections: matterSections, documents }
-}
-
 function AppDataProvider({ children }) {
-  const [matterTypes, setMatterTypes] = useState(createInitialMatterTypes)
-  const [matters, setMatters] = useState(() =>
-    initialMatters.map((matter) => ({ ...matter })),
-  )
-  const [matterRecords, setMatterRecords] = useState(createInitialMatterRecords)
+  const [data, setData] = useState(() => ({
+    matterTypes: createInitialMatterTypes(),
+    matters: initialMatters.map((matter) => ({ ...matter })),
+    matterRecords: createInitialMatterRecords(),
+  }))
+  const { matterTypes, matters, matterRecords } = data
   const [users, setUsers] = useState(() =>
     initialUsers.map((user) => ({ ...user })),
   )
+
+  function setMatters(update) {
+    setData((current) => ({ ...current, matters: update(current.matters) }))
+  }
+
+  function setMatterRecords(update) {
+    setData((current) => ({ ...current, matterRecords: update(current.matterRecords) }))
+  }
+
+  function setMatterTypes(update) {
+    const now = new Date().toISOString()
+    setData((current) => applyTemplateChanges(current, update(current.matterTypes), now))
+  }
 
   function createMatter({ matterName, matterTypeId }) {
     const matterType = matterTypes.find((type) => type.id === matterTypeId)
@@ -129,14 +99,14 @@ function AppDataProvider({ children }) {
     if (
       !matterType ||
       !isMatterTypeReady(matterType) ||
-      !cleanedMatterName ||
+      !isMatterNumberValid(cleanedMatterName) ||
       isMatterNameDuplicate(matters, cleanedMatterName)
     ) {
       return null
     }
 
     const now = new Date().toISOString()
-    const matterId = `matter-${Date.now()}`
+    const matterId = `matter-${crypto.randomUUID()}`
     const matter = {
       id: matterId,
       matterName: cleanedMatterName,
@@ -166,8 +136,7 @@ function AppDataProvider({ children }) {
     setMatterRecords((currentRecords) => ({
       ...currentRecords,
       [matterId]: {
-        sections: snapshot.sections,
-        documents: snapshot.documents,
+        ...snapshot,
         history,
       },
     }))
@@ -188,7 +157,7 @@ function AppDataProvider({ children }) {
       !currentMatter ||
       !currentRecord ||
       !nextMatterType ||
-      !cleanedMatterName ||
+      !isMatterNumberValid(cleanedMatterName) ||
       isMatterNameDuplicate(matters, cleanedMatterName, matterId) ||
       (matterTypeChanged && !isMatterTypeReady(nextMatterType))
     ) {
@@ -237,8 +206,7 @@ function AppDataProvider({ children }) {
       setMatterRecords((currentRecords) => ({
         ...currentRecords,
         [matterId]: {
-          sections: snapshot.sections,
-          documents: snapshot.documents,
+          ...snapshot,
           history: [
             ...statusResetEntry,
             ...currentRecord.history.map((entry) => ({ ...entry })),
@@ -264,7 +232,7 @@ function AppDataProvider({ children }) {
     }
 
     const matterType = {
-      id: `matter-type-${Date.now()}`,
+      id: `matter-type-${crypto.randomUUID()}`,
       name: cleanedName,
       description: description.trim(),
       sections: [],
@@ -331,7 +299,7 @@ function AppDataProvider({ children }) {
     }
 
     const document = {
-      id: `${matterTypeId}-document-${Date.now()}`,
+      id: `${matterTypeId}-document-${crypto.randomUUID()}`,
       name: cleanedName,
       description: documentData.description.trim(),
       isKey: documentData.isKey,
@@ -518,7 +486,7 @@ function AppDataProvider({ children }) {
     }
 
     const section = {
-      id: `${matterTypeId}-section-${Date.now()}`,
+      id: `${matterTypeId}-section-${crypto.randomUUID()}`,
       name: cleanedName,
     }
 

@@ -53,7 +53,7 @@ function EditTemplateDocumentPage() {
       <PageHero
         eyebrow={`Template · ${matterType.name}`}
         title="Edit document"
-        description="Update how this requirement will appear in future matters."
+        description="Update this requirement in new and existing matters."
         contextLabel="Current document"
         contextValue={document.name}
         tone="indigo"
@@ -69,7 +69,8 @@ function EditTemplateDocumentPage() {
       />
 
       <p className={styles.sessionNote}>
-        Existing matters will keep their current document information.
+        Existing matters will receive the updated definition without losing
+        statuses, received quantities, comments, or document tracking dates.
       </p>
     </section>
   )

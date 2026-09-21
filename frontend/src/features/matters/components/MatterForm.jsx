@@ -9,6 +9,7 @@ import {
 import {
   cleanMatterName,
   isMatterNameDuplicate,
+  isMatterNumberValid,
 } from '../utils/normalizeMatterName.js'
 import DocumentTemplatePreview from './DocumentTemplatePreview.jsx'
 import styles from './MatterForm.module.css'
@@ -40,10 +41,10 @@ function MatterForm({ matterTypes, matters, onSubmit }) {
     const cleanedMatterName = cleanMatterName(matterName)
     const nextErrors = {}
 
-    if (!cleanedMatterName) {
-      nextErrors.matterName = 'Matter name is required.'
+    if (!isMatterNumberValid(cleanedMatterName)) {
+      nextErrors.matterName = 'Enter exactly 6 digits (0–9).'
     } else if (isMatterNameDuplicate(matters, cleanedMatterName)) {
-      nextErrors.matterName = 'This matter name is already in use.'
+      nextErrors.matterName = 'This matter number is already in use.'
     }
 
     if (!matterTypeId) {
@@ -83,12 +84,14 @@ function MatterForm({ matterTypes, matters, onSubmit }) {
 
           <div className={styles.fields}>
             <label className={styles.field} htmlFor="matter-name">
-              <span>Matter name</span>
+              <span>Matter number</span>
               <input
                 id="matter-name"
                 type="text"
+                inputMode="numeric"
+                pattern="[0-9]{6}"
                 value={matterName}
-                placeholder="Example: Gutierrez, Juan Carlos (402432)"
+                placeholder="Example: 402432"
                 autoComplete="off"
                 aria-describedby={
                   errors.matterName ? 'matter-name-error' : 'matter-name-help'
@@ -105,7 +108,7 @@ function MatterForm({ matterTypes, matters, onSubmit }) {
                 </small>
               ) : (
                 <small id="matter-name-help" className={styles.helpText}>
-                  Paste the complete name assigned by the firm.
+                  Enter a unique 6-digit number. Leading zeros are preserved.
                 </small>
               )}
             </label>

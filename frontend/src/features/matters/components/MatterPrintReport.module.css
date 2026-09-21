@@ -1,0 +1,45 @@
+.report { display: none; }
+
+@media print {
+  @page { margin: 14mm; }
+
+  :global(html:has([data-matter-print-report])),
+  :global(body:has([data-matter-print-report])) {
+    min-width: 0;
+    min-height: 0;
+    margin: 0;
+    background: white;
+  }
+
+  /* The report is a portal beside #root, so navigation and controls never print. */
+  :global(body:has([data-matter-print-report]) > :not([data-matter-print-report])) {
+    display: none !important;
+  }
+
+  .report {
+    display: block;
+    width: 100%;
+    color: #111;
+    background: white;
+    font-family: Arial, sans-serif;
+    font-size: 10pt;
+    line-height: 1.4;
+  }
+
+  .header { padding-bottom: 12pt; border-bottom: 1pt solid #222; }
+  .header h1 { margin: 6pt 0; font-size: 23pt; }
+  .report h2 { margin: 16pt 0 7pt; font-size: 12pt; break-after: avoid; }
+  .details { display: grid; gap: 5pt; margin-top: 12pt; }
+  .details div { display: grid; grid-template-columns: 110pt 1fr; gap: 10pt; }
+  .details dt { font-weight: bold; }
+  .details dd,
+  .counts dd { margin: 0; }
+  .counts { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8pt; }
+  .counts div { padding: 7pt; border: 0.5pt solid #aaa; break-inside: avoid; }
+  .counts dt { font-size: 8pt; }
+  .counts dd { font-weight: bold; font-size: 16pt; }
+  .note { margin: 7pt 0; font-size: 8pt; color: #444; }
+  .notice { margin-top: 9pt; padding: 7pt; border: 1pt solid #555; font-weight: bold; }
+  .group { margin-top: 14pt; }
+  .footer { margin-top: 18pt; padding-top: 8pt; border-top: 0.5pt solid #aaa; font-size: 8pt; }
+}

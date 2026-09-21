@@ -25,7 +25,7 @@ function NewMatterPage() {
       <PageHero
         eyebrow="Document control"
         title="New matter"
-        description="Enter the complete matter name and copy the selected document template into its record."
+        description="Enter a unique 6-digit matter number and select its document template."
         contextLabel="New record"
         contextValue="Starts in Pending Documents"
       />

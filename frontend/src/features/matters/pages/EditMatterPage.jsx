@@ -40,7 +40,7 @@ function EditMatterPage() {
       state: {
         notice: result.matterTypeChanged
           ? 'Matter type changed. Document tracking was replaced and the workflow was reset.'
-          : 'Matter name updated for this preview session.',
+          : 'Matter number updated for this preview session.',
       },
     })
   }
@@ -50,7 +50,7 @@ function EditMatterPage() {
       <PageHero
         eyebrow="Administrator action"
         title="Edit matter"
-        description="Correct the matter name or replace its matter type and document checklist."
+        description="Correct the matter number or replace its matter type and document checklist."
         contextLabel="Current record"
         contextValue={matter.matterName}
         tone="indigo"

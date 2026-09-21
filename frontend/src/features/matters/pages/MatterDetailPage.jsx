@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { Link, useLocation, useParams } from 'react-router'
 import { useAppData } from '../../../app/providers/useAppData.js'
 import PlaceholderPage from '../../../components/common/PlaceholderPage.jsx'
@@ -8,9 +9,12 @@ import ButtonLink from '../../../components/ui/ButtonLink.jsx'
 import StatusBadge from '../../../components/ui/StatusBadge.jsx'
 import { useUnsavedChangesWarning } from '../../../hooks/useUnsavedChangesWarning.js'
 import DocumentChecklist from '../../documents/components/DocumentChecklist.jsx'
+import DocumentSummaryTable from '../../documents/components/DocumentSummaryTable.jsx'
 import { isDocumentResolved } from '../../documents/constants/documentStatuses.js'
 import { MATTER_STATUSES } from '../constants/matterStatuses.js'
 import { calculateMatterStatus } from '../utils/calculateMatterStatus.js'
+import MatterPrintReport from '../components/MatterPrintReport.jsx'
+import { useMatterPrint } from '../hooks/useMatterPrint.js'
 import styles from './MatterDetailPage.module.css'
 
 function formatDateTime(dateTime) {
@@ -42,6 +46,7 @@ function MatterDetail({
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
   const [saveMessage, setSaveMessage] = useState('')
   const navigationBlocker = useUnsavedChangesWarning(hasUnsavedChanges)
+  const { printedAt, printReport } = useMatterPrint()
 
   const automaticMatterStatus = useMemo(
     () => calculateMatterStatus(documents),
@@ -56,7 +61,10 @@ function MatterDetail({
     (document) => document.isKey && isDocumentResolved(document.status),
   ).length
   const keyDocumentCount = documents.filter((document) => document.isKey).length
-  const completionPercentage = Math.round((resolvedDocuments / documents.length) * 100)
+  const completionPercentage = documents.length === 0
+    ? 0
+    : Math.round((resolvedDocuments / documents.length) * 100)
+  const previousDocuments = matterRecord.previousDocuments ?? []
 
   function addHistoryEntry(fromStatus, toStatus, source, changedAt) {
     setStatusHistory((currentHistory) => [
@@ -175,12 +183,15 @@ function MatterDetail({
 
       <header className={styles.pageHeader}>
         <div>
-          <p className={styles.eyebrow}>Matter record</p>
+          <p className={styles.eyebrow}>Matter number</p>
           <h1>{matter.matterName}</h1>
           <p className={styles.matterType}>{matterTypeName}</p>
         </div>
 
         <div className={styles.headerActions}>
+          <Button variant="secondary" onClick={printReport}>
+            Print report
+          </Button>
           <ButtonLink to={`/matters/${matter.id}/edit`} variant="secondary">
             Edit matter
           </ButtonLink>
@@ -294,6 +305,22 @@ function MatterDetail({
         />
       </section>
 
+      {previousDocuments.length > 0 && (
+        <section className={styles.checklistSection}>
+          <div className={styles.sectionHeading}>
+            <div>
+              <p className={styles.cardLabel}>Preserved tracking</p>
+              <h2>Previous requirements</h2>
+            </div>
+            <p>
+              Removed from the template. These records are retained for reference
+              and do not affect active counts or the matter status.
+            </p>
+          </div>
+          <DocumentSummaryTable documents={previousDocuments} previous />
+        </section>
+      )}
+
       <section className={styles.historySection}>
         <div className={styles.sectionHeading}>
           <div>
@@ -315,6 +342,7 @@ function MatterDetail({
                 </p>
                 <span>
                   {entry.changedBy} · {entry.source} · {formatDateTime(entry.changedAt)}
+                  {entry.reason ? ` · ${entry.reason}` : ''}
                 </span>
               </div>
             </li>
@@ -323,6 +351,21 @@ function MatterDetail({
       </section>
 
       <UnsavedChangesDialog blocker={navigationBlocker} />
+      {createPortal(
+        <MatterPrintReport
+          matterNumber={matter.matterName}
+          matterTypeName={matterTypeName}
+          status={currentMatterStatus}
+          statusMode={statusMode}
+          statusUpdatedAt={statusUpdatedAt}
+          documents={documents}
+          sections={matterRecord.sections ?? []}
+          previousDocuments={previousDocuments}
+          hasUnsavedChanges={hasUnsavedChanges}
+          printedAt={printedAt}
+        />,
+        document.body,
+      )}
     </section>
   )
 }

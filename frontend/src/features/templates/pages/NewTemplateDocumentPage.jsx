@@ -44,7 +44,7 @@ function NewTemplateDocumentPage() {
       <PageHero
         eyebrow={`Template · ${matterType.name}`}
         title="Add document"
-        description="Define a requirement that will be copied into future matters of this type."
+        description="Add a requirement to new and existing matters of this type."
         contextLabel="Document order"
         contextValue={`Added as item ${matterType.documents.length + 1}`}
       />
@@ -58,7 +58,8 @@ function NewTemplateDocumentPage() {
       />
 
       <p className={styles.sessionNote}>
-        Existing matters will not receive this document automatically.
+        Existing matters will receive this document as Pending. Their current
+        document tracking and manually selected workflow status will be preserved.
       </p>
     </section>
   )
