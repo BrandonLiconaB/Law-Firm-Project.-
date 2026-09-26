@@ -4,9 +4,10 @@ import helmet from 'helmet'
 import pinoHttp from 'pino-http'
 import { env } from './config/env.js'
 import { logger } from './config/logger.js'
+import { pool } from './db/pool.js'
 import { errorHandler } from './middleware/errorHandler.js'
 import { notFound } from './middleware/notFound.js'
-import { healthRouter } from './modules/health/health.routes.js'
+import { createHealthRouter } from './modules/health/health.routes.js'
 import { AppError } from './shared/AppError.js'
 
 function validateOrigin(origin, callback) {
@@ -24,7 +25,7 @@ function validateOrigin(origin, callback) {
   )
 }
 
-export function createApp() {
+export function createApp({ database = pool } = {}) {
   const app = express()
 
   app.disable('x-powered-by')
@@ -41,7 +42,7 @@ export function createApp() {
   )
   app.use(express.json({ limit: '50kb' }))
 
-  app.use('/api/health', healthRouter)
+  app.use('/api/health', createHealthRouter({ database }))
 
   app.use(notFound)
   app.use(errorHandler)

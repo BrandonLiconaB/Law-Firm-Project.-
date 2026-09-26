@@ -4,9 +4,13 @@ import request from 'supertest'
 
 process.env.NODE_ENV = 'test'
 process.env.LOG_LEVEL = 'silent'
+process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
 
 const { createApp } = await import('../src/app.js')
-const app = createApp()
+const connectedDatabase = {
+  query: async () => ({ rows: [{ connection_check: 1 }] }),
+}
+const app = createApp({ database: connectedDatabase })
 const server = app.listen()
 
 after(
@@ -25,6 +29,7 @@ test('GET /api/health reports that the API is available', async () => {
     data: {
       status: 'ok',
       service: 'gestor-documental-api',
+      database: 'connected',
     },
   })
 })
@@ -88,4 +93,24 @@ test('invalid JSON does not expose an internal parsing error', async () => {
       message: 'The request body contains invalid JSON.',
     },
   })
+})
+
+test('GET /api/health reports a database outage without exposing details', async () => {
+  const unavailableApp = createApp({
+    database: {
+      query: async () => {
+        throw new Error('Private connection details')
+      },
+    },
+  })
+
+  const response = await request(unavailableApp).get('/api/health').expect(503)
+
+  assert.deepEqual(response.body, {
+    error: {
+      code: 'DATABASE_UNAVAILABLE',
+      message: 'The database is not available.',
+    },
+  })
+  assert.doesNotMatch(JSON.stringify(response.body), /Private connection details/)
 })

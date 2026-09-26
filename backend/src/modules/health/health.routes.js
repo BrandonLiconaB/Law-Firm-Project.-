@@ -1,6 +1,10 @@
 import { Router } from 'express'
-import { getHealth } from './health.controller.js'
+import { createGetHealth } from './health.controller.js'
 
-export const healthRouter = Router()
+export function createHealthRouter({ database }) {
+  const healthRouter = Router()
 
-healthRouter.get('/', getHealth)
+  healthRouter.get('/', createGetHealth({ database }))
+
+  return healthRouter
+}

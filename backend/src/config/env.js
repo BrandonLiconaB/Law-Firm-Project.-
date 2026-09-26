@@ -8,6 +8,21 @@ const envSchema = z.object({
   LOG_LEVEL: z
     .enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent'])
     .default('info'),
+  DATABASE_URL: z
+    .string()
+    .min(1)
+    .refine(
+      (value) => {
+        try {
+          return ['postgres:', 'postgresql:'].includes(new URL(value).protocol)
+        } catch {
+          return false
+        }
+      },
+      { message: 'DATABASE_URL must be a PostgreSQL connection URL.' },
+    ),
+  DATABASE_POOL_MAX: z.coerce.number().int().min(1).max(20).default(5),
+  DATABASE_SSL: z.enum(['disable', 'require']).default('disable'),
 })
 
 const result = envSchema.safeParse(process.env)
