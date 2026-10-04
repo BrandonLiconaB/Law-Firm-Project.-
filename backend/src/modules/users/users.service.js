@@ -82,6 +82,7 @@ export async function createMemberUser(input, database = pool) {
       fullName: user.fullName,
       passwordHash,
       systemRole: USER_ROLES.MEMBER,
+      mustChangePassword: true,
     })
   } catch (error) {
     if (

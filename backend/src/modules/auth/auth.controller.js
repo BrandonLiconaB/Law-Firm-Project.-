@@ -5,6 +5,7 @@ import {
 } from './auth.cookies.js'
 import { deleteSession } from './auth.repository.js'
 import { login } from './auth.service.js'
+import { changeOwnPassword } from './password.service.js'
 
 function sessionResponse(session) {
   return {
@@ -28,6 +29,12 @@ export function createAuthController(database) {
       res.status(200).json(sessionResponse(session))
     },
     me: (req, res) => res.status(200).json(sessionResponse(req.auth)),
+    changePassword: async (req, res) => {
+      await changeOwnPassword(req.auth, req.validated.body, database)
+      clearSessionCookie(res)
+      req.log?.info({ userId: req.auth.user.id }, 'Password changed; user sessions revoked')
+      res.status(204).end()
+    },
     logout: async (req, res) => {
       await deleteSession(database, req.auth.sessionId)
       clearSessionCookie(res)

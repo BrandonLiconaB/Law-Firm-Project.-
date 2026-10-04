@@ -143,6 +143,7 @@ describe('authentication against isolated PostgreSQL', { concurrency: false }, (
       username: memberUsername,
       fullName: 'Integration Member',
       systemRole: 'MEMBER',
+      mustChangePassword: false,
     })
     assert.equal(response.headers['cache-control'], 'no-store')
     assert.match(response.headers['set-cookie'][0], /HttpOnly; SameSite=Lax/)

@@ -1,7 +1,8 @@
 export async function findLoginUser(database, username) {
   const result = await database.query(
     `SELECT id, username, full_name AS "fullName",
-            system_role AS "systemRole", password_hash AS "passwordHash"
+            system_role AS "systemRole", password_hash AS "passwordHash",
+            must_change_password AS "mustChangePassword"
      FROM app.users WHERE username = $1`,
     [username],
   )
@@ -22,7 +23,8 @@ export async function findSession(database, tokenHash) {
   const result = await database.query(
     `SELECT s.id AS "sessionId", s.csrf_token AS "csrfToken",
             s.expires_at AS "expiresAt", u.id, u.username,
-            u.full_name AS "fullName", u.system_role AS "systemRole"
+            u.full_name AS "fullName", u.system_role AS "systemRole",
+            u.must_change_password AS "mustChangePassword"
      FROM app.auth_sessions s
      JOIN app.users u ON u.id = s.user_id
      WHERE s.token_hash = $1 AND s.expires_at > CURRENT_TIMESTAMP`,

@@ -58,8 +58,15 @@ for (const [databaseName, connectionString] of databases) {
       ORDER BY trigger_name
     `)
     const userCount = await client.query(`
-      SELECT count(*)::integer AS count
+      SELECT count(*)::integer AS count,
+        count(*) FILTER (WHERE must_change_password)::integer AS "temporaryPasswords"
       FROM app.users
+    `)
+    const passwordChangeColumn = await client.query(`
+      SELECT column_name, data_type, is_nullable, column_default
+      FROM information_schema.columns
+      WHERE table_schema = 'app' AND table_name = 'users'
+        AND column_name = 'must_change_password'
     `)
     const authIndexes = await client.query(`
       SELECT tablename, indexname
@@ -73,6 +80,28 @@ for (const [databaseName, connectionString] of databases) {
         (SELECT count(*)::integer FROM app.auth_sessions) AS sessions,
         (SELECT count(*)::integer FROM app.auth_login_limits) AS "loginLimits"
     `)
+    const matterTypeColumns = await client.query(`
+      SELECT column_name, data_type, is_nullable, character_maximum_length
+      FROM information_schema.columns
+      WHERE table_schema = 'app' AND table_name = 'matter_types'
+      ORDER BY ordinal_position
+    `)
+    const matterTypeIndexes = await client.query(`
+      SELECT indexname FROM pg_indexes
+      WHERE schemaname = 'app' AND tablename = 'matter_types'
+      ORDER BY indexname
+    `)
+    const matterTypeConstraints = await client.query(`
+      SELECT constraint_name FROM information_schema.table_constraints
+      WHERE table_schema = 'app' AND table_name = 'matter_types'
+      ORDER BY constraint_name
+    `)
+    const matterTypeTriggers = await client.query(`
+      SELECT trigger_name FROM information_schema.triggers
+      WHERE event_object_schema = 'app' AND event_object_table = 'matter_types'
+      ORDER BY trigger_name
+    `)
+    const matterTypeCount = await client.query('SELECT count(*)::integer AS count FROM app.matter_types')
 
     console.log(
       JSON.stringify({
@@ -87,8 +116,17 @@ for (const [databaseName, connectionString] of databases) {
         ),
         userTriggers: userTriggers.rows.map((row) => row.trigger_name),
         userCount: userCount.rows[0].count,
+        temporaryPasswordCount: userCount.rows[0].temporaryPasswords,
+        passwordChangeColumn: passwordChangeColumn.rows,
         authIndexes: authIndexes.rows,
         authCounts: authCounts.rows[0],
+        matterTypes: {
+          count: matterTypeCount.rows[0].count,
+          columns: matterTypeColumns.rows,
+          indexes: matterTypeIndexes.rows.map((row) => row.indexname),
+          constraints: matterTypeConstraints.rows.map((row) => row.constraint_name),
+          triggers: matterTypeTriggers.rows.map((row) => row.trigger_name),
+        },
       }),
     )
   } finally {

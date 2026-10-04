@@ -4,6 +4,7 @@ import {
   createToken,
   hashToken,
   loginLimitKeys,
+  passwordLimitKey,
   tokensMatch,
 } from '../src/modules/auth/auth.tokens.js'
 
@@ -32,4 +33,13 @@ test('login limit keys distinguish accounts and IPs without storing their text',
   assert.notEqual(first.accountIp, second.accountIp)
   assert.notEqual(first.ip, third.ip)
   assert.match(first.ip, /^[a-f0-9]{64}$/)
+})
+
+test('password operation limit keys separate users, actions and login counters', () => {
+  const key = passwordLimitKey('change', 'member')
+  assert.match(key, /^[a-f0-9]{64}$/)
+  assert.equal(key, passwordLimitKey('change', 'member'))
+  assert.notEqual(key, passwordLimitKey('reset', 'member'))
+  assert.notEqual(key, passwordLimitKey('change', 'other'))
+  assert.notEqual(key, loginLimitKeys('127.0.0.1', 'member').accountIp)
 })

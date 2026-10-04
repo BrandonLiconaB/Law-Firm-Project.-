@@ -31,3 +31,7 @@ export function loginLimitKeys(ip, username) {
     accountIp: hashToken(JSON.stringify(['login-account-ip', ip, username])),
   }
 }
+
+export function passwordLimitKey(action, userId) {
+  return hashToken(JSON.stringify(['password-operation', action, userId]))
+}

@@ -2,7 +2,8 @@
 
 API interna construida con Node.js 24, Express 5 y PostgreSQL. La base actual
 incluye el servidor, conexiones PostgreSQL, transacciones, gestión de usuarios
-por el administrador, protección de contraseñas y autenticación con sesiones. Templates y matters
+por el administrador, catálogo de matter types, protección y recuperación de
+contraseñas y autenticación con sesiones. Templates y matters
 se implementarán en los siguientes bloques.
 
 ## Requisitos
@@ -32,8 +33,9 @@ http://localhost:3000/api/health
 - `npm run dev`: inicia Node en modo observación.
 - `npm start`: inicia el servidor sin observación.
 - `npm test`: ejecuta pruebas unitarias y HTTP sin conectarse a PostgreSQL real.
-- `npm run test:integration`: prueba autenticación y gestión de usuarios contra la base aislada
-  configurada en `TEST_DATABASE_URL`, creando y eliminando cuentas temporales.
+- `npm run test:integration`: prueba autenticación, contraseñas, usuarios y
+  matter types contra la base aislada configurada en `TEST_DATABASE_URL`,
+  creando y eliminando cuentas y registros temporales.
 - `npm run test:watch`: vuelve a ejecutar pruebas cuando cambia un archivo.
 - `npm run lint`: revisa la calidad estática del código.
 - `npm run migrate`: aplica migraciones en `gestor_documental_dev`.
@@ -43,6 +45,8 @@ http://localhost:3000/api/health
 - `npm run db:verify`: verifica esquemas, funciones y migraciones en ambas bases
   sin mostrar credenciales.
 - `npm run admin:create`: crea interactivamente el único administrador inicial.
+- `npm run admin:reset-password`: recupera interactivamente la contraseña del
+  administrador existente; no crea una cuenta nueva.
 
 ## Administrador inicial
 
@@ -70,6 +74,7 @@ Todas estas rutas requieren una sesión vigente y el rol `ADMIN`:
 | `POST /api/users` | Crea una cuenta `MEMBER`. |
 | `GET /api/users?page=1&limit=20` | Devuelve un listado paginado. |
 | `GET /api/users/:id` | Consulta una cuenta por su UUID. |
+| `POST /api/users/:id/reset-password` | Asigna una contraseña temporal a un `MEMBER`. |
 
 La creación requiere JSON, el origen autorizado y `X-CSRF-Token` de la sesión
 administrativa. Se aceptan exclusivamente `username`, `fullName` y `password`.
@@ -87,6 +92,7 @@ consulta de la nueva cuenta. Su cuerpo tiene esta forma:
     "username": "team.member",
     "fullName": "Team Member",
     "systemRole": "MEMBER",
+    "mustChangePassword": true,
     "createdAt": "fecha-ISO",
     "updatedAt": "fecha-ISO"
   }
@@ -126,8 +132,87 @@ Los errores de validación incluyen un objeto `fields` con mensajes por campo,
 sin incluir sus valores. PostgreSQL resuelve la unicidad del username incluso
 cuando llegan dos creaciones simultáneas.
 
-Este bloque reutiliza la tabla existente; no requiere una migración nueva.
 La conexión de la interfaz React se realizará en su bloque correspondiente.
+
+## API de matter types
+
+El catálogo identifica categorías como `Family Petition`, no números de matters.
+Cada tipo tiene un UUID interno estable, un nombre, una descripción y fechas
+automáticas. La creación no requiere una plantilla lista: sus secciones y
+documentos se implementarán en el siguiente bloque.
+
+| Método y ruta | Permiso y comportamiento |
+| --- | --- |
+| `GET /api/matter-types?page=1&limit=20` | `ADMIN` y `MEMBER`: listado paginado. |
+| `GET /api/matter-types/:id` | `ADMIN` y `MEMBER`: consulta por UUID. |
+| `POST /api/matter-types` | `ADMIN`: crea una categoría. |
+| `PATCH /api/matter-types/:id` | `ADMIN`: modifica nombre y/o descripción. |
+
+Todas requieren una sesión vigente sin cambio de contraseña temporal pendiente.
+Las escrituras también exigen JSON, el origen autorizado y `X-CSRF-Token`.
+No hay ruta de eliminación ni campos de rol, estado activo o contenido de
+plantilla. Las respuestas utilizan `Cache-Control: no-store`.
+
+Para crear se aceptan exclusivamente estos campos:
+
+```json
+{
+  "name": "Family Petition",
+  "description": "Document checklist category for family petitions."
+}
+```
+
+El nombre es obligatorio, de 1 a 120 caracteres tras limpiar espacios iniciales,
+finales y consecutivos. Conserva su capitalización para mostrarlo. La descripción
+es opcional, se recorta y admite hasta 1000 caracteres; si se omite, se guarda
+como `""`. Ningún campo de texto acepta caracteres nulos.
+
+`Family Petition`, `FAMILY PETITION` y ` family   petition ` son el mismo nombre
+a efectos de unicidad. La API limpia antes de escribir; PostgreSQL exige el
+nombre limpio mediante un `CHECK` y evita duplicados mediante un índice único
+en `lower(name)`. Las dos protecciones siguen siendo efectivas si se evita la
+API o llegan solicitudes simultáneas.
+
+La creación devuelve `201` y `Location: /api/matter-types/<uuid>`. La consulta
+individual y la edición devuelven `200`. Comparten este cuerpo:
+
+```json
+{
+  "data": {
+    "id": "identificador-uuid",
+    "name": "Family Petition",
+    "description": "Document checklist category for family petitions.",
+    "createdAt": "fecha-ISO",
+    "updatedAt": "fecha-ISO"
+  }
+}
+```
+
+`PATCH` admite solo `name`, solo `description` o ambos. Debe incluir al menos
+uno; un cuerpo vacío se rechaza. Los campos omitidos permanecen intactos.
+Enviar `description: ""` borra intencionalmente su contenido; enviar `null` no
+es válido. El UUID y `createdAt` se conservan al renombrar. `updatedAt` se
+actualiza con el trigger compartido de PostgreSQL.
+
+Las ediciones parciales actualizan directamente los campos enviados, sin leer
+el registro y reescribirlo completo. Así, una edición concurrente del nombre
+y otra de la descripción conservan ambos cambios. Si se intenta usar un nombre
+duplicado, ninguna parte de esa edición se guarda.
+
+El listado ordena por `lower(name)` y UUID ascendente. Los valores predeterminados
+son página 1 y límite 20; el máximo por página es 100 y la página máxima es
+100000. Solo acepta los parámetros `page` y `limit`, como enteros positivos.
+El cuerpo contiene `data` y `pagination` (`page`, `limit`, `total`, `totalPages`),
+igual que el listado de usuarios. Total y página se calculan en una sola consulta;
+una página fuera de rango devuelve `data: []` manteniendo el total.
+
+Errores específicos: `400 INVALID_INPUT`, `404 MATTER_TYPE_NOT_FOUND` y
+`409 MATTER_TYPE_NAME_ALREADY_EXISTS`. Se reutilizan los errores de sesión,
+permisos, contraseña temporal, origen, CSRF y tipo de contenido. Los conflictos
+de nombre incluyen `fields.name`, sin exponer detalles SQL ni valores privados.
+
+La tabla se crea vacía. Este bloque no importa mocks, conecta React ni decide
+si una plantilla está lista; tampoco permite cambiar el tipo de un matter.
 
 ## PostgreSQL local
 
@@ -198,7 +283,7 @@ afectar la información utilizada durante el desarrollo.
 22. `tests/user.validation.test.js`: prueba normalización y reglas de entrada.
 
 Para leer el bloque de autenticación, empieza por
-`src/modules/auth/auth.routes.js`. Allí encontrarás las tres rutas y el orden
+`src/modules/auth/auth.routes.js`. Allí encontrarás las rutas y el orden
 de sus controles. Después sigue este recorrido:
 
 ```text
@@ -236,6 +321,58 @@ Archivos del bloque de creación y consulta de usuarios:
   `tests/integration/testDatabase.js`, reutilizado por `auth.test.js`.
 - Configuración y documentación: `package.json` ejecuta las suites de
   integración en secuencia; este README describe el contrato de la API.
+
+Para leer el bloque de contraseñas, recorre primero las rutas y luego
+`password.validation.js` → `password.service.js` → `password.repository.js`.
+La validación define los cuerpos permitidos; el servicio verifica las
+credenciales y decide la operación; el repositorio bloquea la fila del usuario,
+actualiza el hash y elimina sus sesiones dentro de la misma transacción.
+
+Después vuelve a `auth.service.js`: el login comprueba el hash antes de abrir
+la transacción y lo vuelve a comparar bajo un bloqueo compartido antes de crear
+la sesión. Finalmente lee `scripts/resetAdminPassword.js` para el asistente de
+recuperación y `tests/integration/password.test.js` para los ejemplos completos.
+
+Archivos del bloque de cambio y recuperación de contraseñas:
+
+- Nuevos: `src/db/migrations/004_add_password_change_requirement.js`,
+  `src/modules/auth/password.validation.js`, `password.repository.js`,
+  `password.service.js` y `scripts/resetAdminPassword.js`.
+- Autenticación actualizada: `auth.routes.js`, `auth.controller.js`,
+  `auth.middleware.js`, `auth.repository.js`, `auth.service.js`,
+  `auth.constants.js` y `auth.tokens.js`.
+- Usuarios actualizados: `users.routes.js`, `users.controller.js`,
+  `users.service.js` y `users.repository.js`.
+- Protección y configuración: `src/config/logger.js`, `package.json` y
+  `scripts/verifyDatabases.js`. No se añaden dependencias.
+- Pruebas nuevas: `tests/password.validation.test.js` y
+  `tests/integration/password.test.js`; actualizadas: `tests/auth.tokens.test.js`,
+  `tests/integration/auth.test.js` y `tests/integration/users.test.js`.
+- Documentación: este README. El frontend no cambia en este bloque.
+
+Para leer el catálogo de matter types, empieza por
+`src/modules/matterTypes/matterTypes.routes.js`: las dos consultas son comunes,
+mientras que cada escritura añade el permiso de administrador y CSRF. Sigue
+`matterTypes.controller.js` → `matterTypes.service.js` →
+`matterTypes.repository.js`. La validación está en `matterType.validation.js`.
+
+En el repositorio, `COALESCE` conserva los campos que no llegaron en el `PATCH`;
+una descripción vacía sí se escribe porque es un valor, no una ausencia.
+En el servicio, el error de unicidad de PostgreSQL se transforma en un conflicto
+HTTP comprensible. La base de datos resuelve la carrera entre dos nombres iguales.
+
+Archivos de este bloque:
+
+- Nuevos: `src/db/migrations/005_create_matter_types.js` y los cinco archivos de
+  `src/modules/matterTypes/`: `matterTypes.routes.js`, `matterTypes.controller.js`,
+  `matterTypes.service.js`, `matterTypes.repository.js` y `matterType.validation.js`.
+- Pruebas nuevas: `tests/matterType.validation.test.js` y
+  `tests/integration/matterTypes.test.js`.
+- Actualizados: `src/app.js` registra el módulo,
+  `scripts/verifyDatabases.js` comprueba su estructura y cantidad de registros,
+  y este README explica el contrato y orden de lectura.
+- No cambian dependencias, frontend, mocks ni los archivos del bloque de usuarios
+  y contraseñas.
 
 ## Flujo de una solicitud
 
@@ -301,6 +438,19 @@ un token CSRF independiente y fechas de creación y expiración. La segunda
 conserva contadores temporales de login mediante claves derivadas de IP y
 username, sin guardar esos valores directamente en sus filas.
 
+La cuarta migración añade `must_change_password` a `app.users`, un booleano
+obligatorio con valor predeterminado `false`. No cambia los hashes ni impone
+un cambio de contraseña a las cuentas existentes. Los usuarios nuevos creados
+por la API y los restablecimientos administrativos sí fijan el indicador en
+`true`. La tabla de límites también se reutiliza para operaciones de contraseña
+con claves distintas de las del login.
+
+La quinta migración crea `app.matter_types`. Contiene UUID, nombre, descripción
+y fechas; añade validación de nombres limpios, unicidad sin distinguir mayúsculas,
+límite de descripción y el trigger de `updated_at`. Se revoca el acceso de
+`PUBLIC` y no se insertan categorías de ejemplo. No hay relaciones con templates
+o matters todavía.
+
 Cada migración incluye `up` y `down`. `up` aplica el cambio. `down` existe para
 corregir el desarrollo, pero no debe utilizarse improvisadamente sobre datos de
 producción.
@@ -323,6 +473,7 @@ Las rutas disponibles son:
 | `POST /api/auth/login` | Valida credenciales y emite una cookie de sesión. |
 | `GET /api/auth/me` | Devuelve el usuario, token CSRF y expiración de su sesión. |
 | `POST /api/auth/logout` | Revoca la sesión actual y borra su cookie. |
+| `POST /api/auth/change-password` | Cambia la contraseña propia y revoca todas sus sesiones. |
 
 El login requiere JSON y una cabecera `Origin` exactamente igual a
 `FRONTEND_ORIGIN`. Su cuerpo contiene `username` y `password`. Una cuenta
@@ -339,7 +490,8 @@ Las respuestas de login y `/me` tienen esta forma:
       "id": "identificador-uuid",
       "username": "usuario",
       "fullName": "Nombre completo",
-      "systemRole": "MEMBER"
+      "systemRole": "MEMBER",
+      "mustChangePassword": false
     },
     "csrfToken": "token-aleatorio-de-64-caracteres",
     "expiresAt": "fecha-ISO"
@@ -369,6 +521,92 @@ la limpieza se reanudará cuando despierte; la expiración sigue siendo efectiva
 `createRequireAuth(database)` consulta sesión y usuario en cada solicitud.
 `requireAdmin` comprueba el rol actual y `requireCsrf` verifica operaciones
 que modifican datos. Estas funciones serán reutilizadas por futuras rutas.
+
+## Cambio y recuperación de contraseñas
+
+Una contraseña asignada al crear un `MEMBER` o al restablecerlo es temporal.
+El login sigue permitido, pero devuelve `mustChangePassword: true`. Esa sesión
+solo puede consultar `/api/auth/me`, cambiar la contraseña propia y cerrar
+sesión. Las demás rutas protegidas por `createRequireAuth` devuelven
+`403 PASSWORD_CHANGE_REQUIRED`. No es un estado activo/inactivo del usuario.
+
+### Cambio personal
+
+`POST /api/auth/change-password` acepta exclusivamente:
+
+```json
+{
+  "currentPassword": "contraseña actual del usuario",
+  "newPassword": "nueva contraseña privada"
+}
+```
+
+Requiere sesión, JSON, origen autorizado y `X-CSRF-Token`. Sirve para `ADMIN`
+y `MEMBER`, incluyendo usuarios con contraseña temporal. Comprueba la
+contraseña actual y exige una nueva diferente, de 12 a 128 caracteres, sin
+recortarla. Guarda su hash, pone `mustChangePassword` en `false`, revoca todas
+las sesiones del usuario y borra la cookie actual. Devuelve `204`, sin cuerpo;
+después se debe iniciar sesión con la nueva contraseña.
+
+Una prueba incorrecta devuelve `400 CURRENT_PASSWORD_INCORRECT`; conservar la
+misma contraseña devuelve `400 PASSWORD_UNCHANGED`. Ningún intento fallido
+modifica el hash ni revoca sesiones. Se permiten cinco intentos válidos en
+formato por usuario durante una ventana fija de 15 minutos.
+
+### Restablecimiento por el administrador
+
+`POST /api/users/:id/reset-password` acepta exclusivamente:
+
+```json
+{
+  "administratorPassword": "contraseña actual del administrador",
+  "newPassword": "contraseña temporal para el miembro"
+}
+```
+
+Exige los mismos controles HTTP y una sesión `ADMIN` sin cambio pendiente.
+Vuelve a comprobar la contraseña del administrador y solo permite un destino
+`MEMBER`. No sirve para restablecer al propio administrador. Guarda el hash
+temporal, activa `mustChangePassword` y revoca todas las sesiones del miembro;
+la sesión administrativa permanece vigente. Devuelve `204`, sin cuerpo.
+
+La prueba administrativa incorrecta devuelve `400 ADMIN_PASSWORD_INCORRECT`,
+un destino inexistente `404 USER_NOT_FOUND` y un destino no `MEMBER`
+`400 PASSWORD_RESET_NOT_ALLOWED`. No se permite reutilizar la contraseña actual
+del miembro. El límite es de diez intentos válidos en formato por administrador
+en 15 minutos, independiente de su límite de cambio personal.
+
+Ambos límites cuentan éxitos y fallos, se guardan en PostgreSQL y sobreviven a
+reinicios o al cambio de dispositivo. Al superar el límite, la API devuelve
+`429 PASSWORD_RATE_LIMITED` y `Retry-After` en segundos. Las validaciones no
+devuelven los valores enviados y los logs ocultan los campos de contraseñas.
+
+### Recuperación del administrador desde la terminal
+
+Usa `npm run admin:reset-password` **solo si olvidaste la contraseña del
+administrador**. Solicita su username, una nueva contraseña y su confirmación;
+las dos entradas de contraseña son ocultas. No necesita la contraseña anterior,
+no acepta contraseñas en argumentos o variables de entorno y no expone una
+ruta HTTP de recuperación. La seguridad de este mecanismo depende de restringir
+el acceso al equipo y a las credenciales de PostgreSQL.
+
+Solo recupera un administrador que ya exista. Revoca todas sus sesiones y deja
+`mustChangePassword` en `false`, porque ya elegiste su contraseña personal.
+En este bloque no se ejecutó ninguna recuperación sobre la cuenta real.
+
+### Operaciones simultáneas y reversión
+
+El cambio de hash, indicador temporal y revocación se confirman juntos. Si una
+parte falla, `ROLLBACK` conserva la contraseña y sesiones anteriores.
+La sesión y permisos se vuelven a comprobar dentro de la transacción.
+
+El login mantiene un bloqueo `FOR SHARE` sobre la fila del usuario hasta crear
+su sesión. Los cambios usan `FOR UPDATE`, incompatible con ese bloqueo: si el
+login termina primero, el cambio posterior elimina su sesión; si el cambio
+termina primero, el login detecta que su hash previo ya no coincide y rechaza
+las credenciales antiguas. No queda una sesión válida creada con la contraseña
+anterior después de completar el cambio. Son bloqueos por fila, no de toda la
+tabla. Referencia: [bloqueos de PostgreSQL 15](https://www.postgresql.org/docs/15/explicit-locking.html).
 
 ## Límites de login
 
@@ -403,6 +641,16 @@ bajo solicitudes simultáneas y limpieza de datos vencidos.
 También se comprueban creación por administrador, rechazo de usuarios comunes,
 campos públicos, acceso de cuentas nuevas, unicidad concurrente, paginación y
 validación de entrada.
+Las pruebas de contraseñas comprueban cambios personales, contraseñas
+temporales, permisos de restablecimiento, revocación de todos los dispositivos,
+límites persistentes, recuperación del administrador ficticio, transacciones
+fallidas y ambos órdenes de una carrera entre login y restablecimiento. La
+contraseña del administrador de desarrollo no se usa ni se modifica en ellas.
+El catálogo se prueba con tipos temporales: permisos de lectura y escritura,
+limpieza de nombres, límites de campos, protección SQL, ediciones parciales,
+unicidad en creación y edición concurrentes, paginación alfabética, persistencia
+al recrear la API y errores seguros. Se eliminan únicamente los registros
+identificados como creados por la suite; no se vacía la tabla completa.
 
 ## Preparación del despliegue
 

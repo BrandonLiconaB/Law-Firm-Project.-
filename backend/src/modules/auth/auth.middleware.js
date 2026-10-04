@@ -9,7 +9,7 @@ import {
 import { clearSessionCookie, readSessionToken } from './auth.cookies.js'
 import { consumeLoginAttempt } from './auth.repository.js'
 import { resolveSession } from './auth.service.js'
-import { loginLimitKeys, tokensMatch } from './auth.tokens.js'
+import { loginLimitKeys, passwordLimitKey, tokensMatch } from './auth.tokens.js'
 import { loginSchema } from './auth.validation.js'
 
 export function noStore(req, res, next) {
@@ -75,7 +75,27 @@ export function createLoginLimiter(database) {
   }
 }
 
-export function createRequireAuth(database) {
+export function createPasswordLimiter(database, { action, limit }) {
+  return async (req, res, next) => {
+    const result = await consumeLoginAttempt(
+      database,
+      passwordLimitKey(action, req.auth.user.id),
+      limit,
+      LOGIN_WINDOW_SECONDS,
+    )
+    if (result.attempts > limit) {
+      res.set('Retry-After', String(result.retryAfter))
+      throw new AppError({
+        code: 'PASSWORD_RATE_LIMITED',
+        message: 'Too many password attempts. Please try again later.',
+        statusCode: 429,
+      })
+    }
+    next()
+  }
+}
+
+export function createRequireAuth(database, { allowPasswordChange = false } = {}) {
   return async (req, res, next) => {
     const token = readSessionToken(req)
     req.auth = token ? await resolveSession(database, token) : null
@@ -85,6 +105,13 @@ export function createRequireAuth(database) {
         code: 'AUTHENTICATION_REQUIRED',
         message: 'Please sign in to continue.',
         statusCode: 401,
+      })
+    }
+    if (req.auth.user.mustChangePassword && !allowPasswordChange) {
+      throw new AppError({
+        code: 'PASSWORD_CHANGE_REQUIRED',
+        message: 'Please change your temporary password to continue.',
+        statusCode: 403,
       })
     }
     next()

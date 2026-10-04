@@ -19,7 +19,8 @@
     "migrate:test": "node-pg-migrate up --envPath .env --database-url-var TEST_DATABASE_URL --migrations-dir src/db/migrations --migrations-schema app_migrations --create-migrations-schema",
     "migrate:create": "node-pg-migrate create --migrations-dir src/db/migrations --migration-filename-format index --migration-file-language js",
     "db:verify": "node --env-file=.env scripts/verifyDatabases.js",
-    "admin:create": "node --env-file=.env scripts/createAdmin.js"
+    "admin:create": "node --env-file=.env scripts/createAdmin.js",
+    "admin:reset-password": "node --env-file=.env scripts/resetAdminPassword.js"
   },
   "dependencies": {
     "@inquirer/prompts": "^8.7.2",

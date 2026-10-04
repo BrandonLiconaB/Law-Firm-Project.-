@@ -17,7 +17,7 @@ const fixturePassword = 'Learning-only users password!42'
 const origin = 'http://localhost:5173'
 const userIds = new Set()
 const limitKeys = new Set()
-const publicFields = ['createdAt', 'fullName', 'id', 'systemRole', 'updatedAt', 'username']
+const publicFields = ['createdAt', 'fullName', 'id', 'mustChangePassword', 'systemRole', 'updatedAt', 'username']
 let server
 let administrator
 let member
@@ -140,6 +140,7 @@ describe('administrator user API against isolated PostgreSQL', { concurrency: fa
     assert.equal(response.body.data.username, input.username)
     assert.equal(response.body.data.fullName, 'Created Member')
     assert.equal(response.body.data.systemRole, 'MEMBER')
+    assert.equal(response.body.data.mustChangePassword, true)
     assert.equal(response.headers.location, `/api/users/${response.body.data.id}`)
     assert.equal(response.headers['cache-control'], 'no-store')
 

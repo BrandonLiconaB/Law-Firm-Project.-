@@ -2,7 +2,8 @@ import { USER_ROLES } from './user.constants.js'
 
 const PUBLIC_USER_COLUMNS = `
   id, username, full_name AS "fullName", system_role AS "systemRole",
-  created_at AS "createdAt", updated_at AS "updatedAt"
+  created_at AS "createdAt", updated_at AS "updatedAt",
+  must_change_password AS "mustChangePassword"
 `
 
 export async function findAdministrator(database) {
@@ -26,18 +27,26 @@ export async function insertUser(database, user) {
         username,
         full_name,
         password_hash,
-        system_role
+        system_role,
+        must_change_password
       )
-      VALUES ($1, $2, $3, $4)
+      VALUES ($1, $2, $3, $4, $5)
       RETURNING
         id,
         username,
         full_name AS "fullName",
         system_role AS "systemRole",
+        must_change_password AS "mustChangePassword",
         created_at AS "createdAt",
         updated_at AS "updatedAt"
     `,
-    [user.username, user.fullName, user.passwordHash, user.systemRole],
+    [
+      user.username,
+      user.fullName,
+      user.passwordHash,
+      user.systemRole,
+      user.mustChangePassword ?? false,
+    ],
   )
 
   return result.rows[0]
@@ -76,6 +85,7 @@ export async function findUsersPage(database, { limit, offset }) {
       username: row.username,
       fullName: row.fullName,
       systemRole: row.systemRole,
+      mustChangePassword: row.mustChangePassword,
       createdAt: row.createdAt,
       updatedAt: row.updatedAt,
     })),

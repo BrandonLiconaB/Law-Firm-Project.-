@@ -3,6 +3,7 @@ import { withTransaction } from '../../db/transaction.js'
 import { AppError } from '../../shared/AppError.js'
 import { hashPassword, verifyPassword } from './password.js'
 import { createToken, hashToken } from './auth.tokens.js'
+import { lockUserCredentials } from './password.repository.js'
 import {
   deleteSessionByToken,
   findLoginUser,
@@ -23,6 +24,7 @@ export function publicUser(user) {
     username: user.username,
     fullName: user.fullName,
     systemRole: user.systemRole,
+    mustChangePassword: user.mustChangePassword,
   }
 }
 
@@ -41,7 +43,16 @@ export async function login(database, credentials, previousToken) {
 
   const token = createToken()
   const csrfToken = createToken()
-  const session = await withTransaction(async (client) => {
+  const result = await withTransaction(async (client) => {
+    const currentUser = await lockUserCredentials(client, user.id, { shared: true })
+    // A reset may have committed while Argon2 checked the earlier snapshot.
+    if (!currentUser || currentUser.passwordHash !== passwordHash) {
+      throw new AppError({
+        code: 'INVALID_CREDENTIALS',
+        message: 'Invalid username or password.',
+        statusCode: 401,
+      })
+    }
     const createdSession = await insertSession(client, {
       userId: user.id,
       tokenHash: hashToken(token),
@@ -53,10 +64,15 @@ export async function login(database, credentials, previousToken) {
       await deleteSessionByToken(client, hashToken(previousToken))
     }
 
-    return createdSession
+    return { session: createdSession, user: currentUser }
   }, database)
 
-  return { token, user: publicUser(user), csrfToken, expiresAt: session.expiresAt }
+  return {
+    token,
+    user: publicUser(result.user),
+    csrfToken,
+    expiresAt: result.session.expiresAt,
+  }
 }
 
 export async function resolveSession(database, token) {
