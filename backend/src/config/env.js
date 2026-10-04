@@ -23,6 +23,11 @@ const envSchema = z.object({
     ),
   DATABASE_POOL_MAX: z.coerce.number().int().min(1).max(20).default(5),
   DATABASE_SSL: z.enum(['disable', 'require']).default('disable'),
+  SESSION_COOKIE_NAME: z
+    .string()
+    .regex(/^[a-zA-Z0-9_-]{1,64}$/)
+    .default('gestor_session'),
+  SESSION_TTL_HOURS: z.coerce.number().int().min(1).max(24).default(12),
 })
 
 const result = envSchema.safeParse(process.env)

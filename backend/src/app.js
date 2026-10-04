@@ -1,4 +1,5 @@
 import cors from 'cors'
+import cookieParser from 'cookie-parser'
 import express from 'express'
 import helmet from 'helmet'
 import pinoHttp from 'pino-http'
@@ -8,6 +9,8 @@ import { pool } from './db/pool.js'
 import { errorHandler } from './middleware/errorHandler.js'
 import { notFound } from './middleware/notFound.js'
 import { createHealthRouter } from './modules/health/health.routes.js'
+import { createAuthRouter } from './modules/auth/auth.routes.js'
+import { createUsersRouter } from './modules/users/users.routes.js'
 import { AppError } from './shared/AppError.js'
 
 function validateOrigin(origin, callback) {
@@ -41,8 +44,11 @@ export function createApp({ database = pool } = {}) {
     }),
   )
   app.use(express.json({ limit: '50kb' }))
+  app.use(cookieParser())
 
   app.use('/api/health', createHealthRouter({ database }))
+  app.use('/api/auth', createAuthRouter({ database }))
+  app.use('/api/users', createUsersRouter({ database }))
 
   app.use(notFound)
   app.use(errorHandler)

@@ -22,8 +22,29 @@ export const passwordSchema = z
   .min(12, 'Password must contain at least 12 characters.')
   .max(128, 'Password cannot contain more than 128 characters.')
 
-export const initialAdminSchema = z.strictObject({
+export const createUserSchema = z.strictObject({
   username: usernameSchema,
   fullName: fullNameSchema,
   password: passwordSchema,
+})
+
+export const initialAdminSchema = createUserSchema
+
+export const listUsersQuerySchema = z.strictObject({
+  page: z
+    .string()
+    .regex(/^[1-9]\d{0,5}$/)
+    .transform(Number)
+    .pipe(z.number().int().max(100_000))
+    .default(1),
+  limit: z
+    .string()
+    .regex(/^[1-9]\d{0,2}$/)
+    .transform(Number)
+    .pipe(z.number().int().max(100))
+    .default(20),
+})
+
+export const userIdParamsSchema = z.strictObject({
+  id: z.uuid(),
 })

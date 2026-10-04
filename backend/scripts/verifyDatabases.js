@@ -61,6 +61,18 @@ for (const [databaseName, connectionString] of databases) {
       SELECT count(*)::integer AS count
       FROM app.users
     `)
+    const authIndexes = await client.query(`
+      SELECT tablename, indexname
+      FROM pg_indexes
+      WHERE schemaname = 'app'
+        AND tablename IN ('auth_sessions', 'auth_login_limits')
+      ORDER BY tablename, indexname
+    `)
+    const authCounts = await client.query(`
+      SELECT
+        (SELECT count(*)::integer FROM app.auth_sessions) AS sessions,
+        (SELECT count(*)::integer FROM app.auth_login_limits) AS "loginLimits"
+    `)
 
     console.log(
       JSON.stringify({
@@ -75,6 +87,8 @@ for (const [databaseName, connectionString] of databases) {
         ),
         userTriggers: userTriggers.rows.map((row) => row.trigger_name),
         userCount: userCount.rows[0].count,
+        authIndexes: authIndexes.rows,
+        authCounts: authCounts.rows[0],
       }),
     )
   } finally {

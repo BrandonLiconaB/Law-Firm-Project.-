@@ -2,11 +2,13 @@ import { createApp } from './app.js'
 import { env } from './config/env.js'
 import { logger } from './config/logger.js'
 import { closeDatabasePool } from './db/pool.js'
+import { startAuthMaintenance } from './modules/auth/auth.maintenance.js'
 
 const app = createApp()
 const server = app.listen(env.PORT, () => {
   logger.info({ port: env.PORT }, 'Gestor documental API started')
 })
+const stopAuthMaintenance = startAuthMaintenance()
 
 let isShuttingDown = false
 
@@ -23,6 +25,7 @@ function closeServer(signal) {
     }
 
     try {
+      await stopAuthMaintenance()
       await closeDatabasePool()
     } catch (databaseError) {
       logger.error({ err: databaseError }, 'Database pool shutdown failed')
