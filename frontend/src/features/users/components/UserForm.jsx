@@ -1,138 +1,59 @@
 import { useState } from 'react'
 import Button from '../../../components/ui/Button.jsx'
 import ButtonLink from '../../../components/ui/ButtonLink.jsx'
-import {
-  cleanUserName,
-  isUserEmailDuplicate,
-  isUserEmailValid,
-  normalizeUserEmail,
-} from '../utils/userValidation.js'
+import RequestFeedback from '../../../components/common/RequestFeedback.jsx'
+import { useAsyncAction } from '../../../hooks/useAsyncAction.js'
+import UserFormField from './UserFormField.jsx'
+import { getUserFieldErrors, normalizeUsername, validateNewUser } from '../utils/userValidation.js'
 import styles from './UserForm.module.css'
 
-function UserForm({
-  users,
-  initialUser = null,
-  submitLabel,
-  cancelTo,
-  onSubmit,
-}) {
-  const [name, setName] = useState(initialUser?.name ?? '')
-  const [email, setEmail] = useState(initialUser?.email ?? '')
+function UserForm({ onSubmit, isBusy = false }) {
+  const [fullName, setFullName] = useState('')
+  const [username, setUsername] = useState('')
+  const [password, setPassword] = useState('')
+  const [confirmation, setConfirmation] = useState('')
   const [errors, setErrors] = useState({})
+  const action = useAsyncAction()
+  const fields = getUserFieldErrors(action.error, errors)
+  const disabled = action.isPending || isBusy
 
-  function clearFieldError(fieldName) {
-    setErrors((currentErrors) => {
-      if (!currentErrors[fieldName]) {
-        return currentErrors
-      }
-
-      const nextErrors = { ...currentErrors }
-      delete nextErrors[fieldName]
-      return nextErrors
-    })
+  function update(field, setter, value) {
+    setter(value)
+    action.clearError()
+    setErrors((current) => { const next = { ...current }; delete next[field]; return next })
   }
-
-  function handleSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault()
-
-    const cleanedName = cleanUserName(name)
-    const normalizedEmail = normalizeUserEmail(email)
-    const nextErrors = {}
-
-    if (!cleanedName) {
-      nextErrors.name = 'Name is required.'
-    }
-
-    if (!normalizedEmail) {
-      nextErrors.email = 'Email is required.'
-    } else if (!isUserEmailValid(normalizedEmail)) {
-      nextErrors.email = 'Enter a valid email address.'
-    } else if (
-      isUserEmailDuplicate(users, normalizedEmail, initialUser?.id)
-    ) {
-      nextErrors.email = 'This email address is already in use.'
-    }
-
-    if (Object.keys(nextErrors).length > 0) {
-      setErrors(nextErrors)
-      return
-    }
-
-    setErrors({})
-    onSubmit({
-      name: cleanedName,
-      email: normalizedEmail,
+    if (disabled) return
+    const nextErrors = validateNewUser({ fullName, username, password, confirmation })
+    setErrors(nextErrors)
+    if (Object.keys(nextErrors).length) return
+    await action.run(async () => {
+      try { await onSubmit({ fullName: fullName.trim(), username: normalizeUsername(username), password }) }
+      finally { setPassword(''); setConfirmation('') }
     })
   }
-
-  return (
-    <form className={styles.form} noValidate onSubmit={handleSubmit}>
-      <div className={styles.field}>
-        <label htmlFor="user-name">Name</label>
-        <input
-          id="user-name"
-          type="text"
-          value={name}
-          placeholder="Enter the user's name"
-          autoComplete="name"
-          aria-describedby={errors.name ? 'user-name-error' : undefined}
-          aria-invalid={Boolean(errors.name)}
-          onChange={(event) => {
-            setName(event.target.value)
-            clearFieldError('name')
-          }}
-        />
-        {errors.name && (
-          <small id="user-name-error" className={styles.errorMessage}>
-            {errors.name}
-          </small>
-        )}
-      </div>
-
-      <div className={styles.field}>
-        <label htmlFor="user-email">Email</label>
-        <input
-          id="user-email"
-          type="email"
-          value={email}
-          placeholder="name@example.com"
-          autoComplete="email"
-          aria-describedby={
-            errors.email ? 'user-email-error' : 'user-email-help'
-          }
-          aria-invalid={Boolean(errors.email)}
-          onChange={(event) => {
-            setEmail(event.target.value)
-            clearFieldError('email')
-          }}
-        />
-        {errors.email ? (
-          <small id="user-email-error" className={styles.errorMessage}>
-            {errors.email}
-          </small>
-        ) : (
-          <small id="user-email-help" className={styles.helpText}>
-            Email addresses must be unique across internal users.
-          </small>
-        )}
-      </div>
-
-      <div className={styles.accessNotice}>
-        <strong>Directory record only</strong>
-        <p>
-          Authentication, passwords, invitations, roles, and access permissions
-          are not configured in this frontend preview.
-        </p>
-      </div>
-
-      <div className={styles.actions}>
-        <Button type="submit">{submitLabel}</Button>
-        <ButtonLink to={cancelTo} variant="secondary">
-          Cancel
-        </ButtonLink>
-      </div>
-    </form>
-  )
+  return <form className={styles.form} noValidate onSubmit={handleSubmit} aria-busy={disabled}>
+    <RequestFeedback error={action.error} />
+    <UserFormField id="user-full-name" label="Full name" type="text" autoComplete="name" required maxLength={120}
+      value={fullName} disabled={disabled} error={fields.fullName} onChange={(event) => update('fullName', setFullName, event.target.value)} />
+    <UserFormField id="user-username" label="Username" type="text" autoComplete="username" autoCapitalize="none" spellCheck={false}
+      required maxLength={50} value={username} disabled={disabled} error={fields.username}
+      help="Unique username: 3–50 letters, numbers, periods, hyphens, or underscores."
+      onChange={(event) => update('username', setUsername, event.target.value)} />
+    <UserFormField id="user-password" label="Temporary password" type="password" autoComplete="new-password" required minLength={12} maxLength={128}
+      value={password} disabled={disabled} error={fields.password} help="Use 12–128 characters. Share this password privately with the user."
+      onChange={(event) => update('password', setPassword, event.target.value)} />
+    <UserFormField id="user-confirm-password" label="Confirm temporary password" type="password" autoComplete="new-password" required maxLength={128}
+      value={confirmation} disabled={disabled} error={fields.confirmation}
+      onChange={(event) => update('confirmation', setConfirmation, event.target.value)} />
+    <div className={styles.accessNotice}><strong>Personal password required on first sign-in</strong>
+      <p>New accounts are internal users. They must replace this temporary password before accessing the workspace. No email is sent.</p></div>
+    <div className={styles.actions}>
+      <Button type="submit" disabled={disabled}>{action.isPending ? 'Creating…' : 'Create user'}</Button>
+      <ButtonLink to="/admin/users" variant="secondary" disabled={disabled}>Cancel</ButtonLink>
+    </div>
+  </form>
 }
 
 export default UserForm

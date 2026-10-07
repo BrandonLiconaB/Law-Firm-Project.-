@@ -2,9 +2,9 @@
 
 API interna construida con Node.js 24, Express 5 y PostgreSQL. La base actual
 incluye el servidor, conexiones PostgreSQL, transacciones, gestión de usuarios
-por el administrador, catálogo de matter types, protección y recuperación de
-contraseñas y autenticación con sesiones. Templates y matters
-se implementarán en los siguientes bloques.
+por el administrador, catálogo de matter types y sus plantillas de documentos,
+protección y recuperación de contraseñas y autenticación con sesiones.
+Los matters y la conexión con React se implementarán en los siguientes bloques.
 
 ## Requisitos
 
@@ -33,8 +33,8 @@ http://localhost:3000/api/health
 - `npm run dev`: inicia Node en modo observación.
 - `npm start`: inicia el servidor sin observación.
 - `npm test`: ejecuta pruebas unitarias y HTTP sin conectarse a PostgreSQL real.
-- `npm run test:integration`: prueba autenticación, contraseñas, usuarios y
-  matter types contra la base aislada configurada en `TEST_DATABASE_URL`,
+- `npm run test:integration`: prueba autenticación, contraseñas, usuarios,
+  matter types y plantillas contra la base aislada configurada en `TEST_DATABASE_URL`,
   creando y eliminando cuentas y registros temporales.
 - `npm run test:watch`: vuelve a ejecutar pruebas cuando cambia un archivo.
 - `npm run lint`: revisa la calidad estática del código.
@@ -138,8 +138,8 @@ La conexión de la interfaz React se realizará en su bloque correspondiente.
 
 El catálogo identifica categorías como `Family Petition`, no números de matters.
 Cada tipo tiene un UUID interno estable, un nombre, una descripción y fechas
-automáticas. La creación no requiere una plantilla lista: sus secciones y
-documentos se implementarán en el siguiente bloque.
+automáticas. Cada tipo tiene una plantilla lógica propia, formada por secciones
+y documentos. La creación no requiere una plantilla lista: se configura después.
 
 | Método y ruta | Permiso y comportamiento |
 | --- | --- |
@@ -183,7 +183,11 @@ individual y la edición devuelven `200`. Comparten este cuerpo:
     "name": "Family Petition",
     "description": "Document checklist category for family petitions.",
     "createdAt": "fecha-ISO",
-    "updatedAt": "fecha-ISO"
+    "updatedAt": "fecha-ISO",
+    "templateRevision": 0,
+    "documentCount": 0,
+    "keyDocumentCount": 0,
+    "templateStatus": "Template required"
   }
 }
 ```
@@ -211,8 +215,175 @@ Errores específicos: `400 INVALID_INPUT`, `404 MATTER_TYPE_NOT_FOUND` y
 permisos, contraseña temporal, origen, CSRF y tipo de contenido. Los conflictos
 de nombre incluyen `fields.name`, sin exponer detalles SQL ni valores privados.
 
-La tabla se crea vacía. Este bloque no importa mocks, conecta React ni decide
-si una plantilla está lista; tampoco permite cambiar el tipo de un matter.
+Los contadores, la revisión y el estado de la plantilla se incluyen también en
+el listado y en las respuestas de creación y edición de categorías. Se calculan
+con las definiciones actuales; no son campos editables por el consumidor.
+Las tablas se crean vacías, sin importar mocks ni conectar React. El cambio de
+tipo de un matter todavía no está implementado en el backend.
+
+## API de plantillas
+
+La ruta base es `/api/matter-types/:matterTypeId/template`. No existe una tabla
+independiente de templates: las secciones y documentos pertenecen directamente
+al UUID de un matter type. Cambiar su nombre no modifica esa asociación.
+
+Todas las rutas requieren una sesión sin cambio temporal de contraseña pendiente.
+`ADMIN` y `MEMBER` pueden consultar; solo `ADMIN` puede modificar. Las escrituras
+exigen origen autorizado y `X-CSRF-Token`; aquellas con cuerpo también exigen JSON.
+Las respuestas utilizan `Cache-Control: no-store`.
+
+| Método y ruta relativa a la base | Comportamiento |
+| --- | --- |
+| `GET /` | Consulta la plantilla actual completa. |
+| `POST /sections` | Crea una sección al final. |
+| `PATCH /sections/:sectionId` | Cambia su nombre, conservando su UUID. |
+| `DELETE /sections/:sectionId` | Retira la sección y pasa sus documentos actuales a General. |
+| `POST /sections/:sectionId/move` | Mueve una posición arriba o abajo. |
+| `POST /documents` | Crea una definición al final de su grupo. |
+| `PATCH /documents/:documentId` | Edita sus campos o cambia su sección. |
+| `DELETE /documents/:documentId` | Retira la definición sin borrar su fila. |
+| `POST /documents/:documentId/move` | Mueve una posición dentro de su grupo. |
+
+### Campos y ejemplos
+
+Crear o renombrar una sección acepta exclusivamente `{ "name": "Petitioner" }`.
+Crear un documento acepta:
+
+```json
+{
+  "name": "Petitioner passport",
+  "description": "Copy of the identification page.",
+  "sectionId": "uuid-de-la-seccion",
+  "isKey": true,
+  "expectedQuantity": 1
+}
+```
+
+Solo `name` es obligatorio. Los valores omitidos son `description: ""`,
+`sectionId: null`, `isKey: false` y `expectedQuantity: null`. Un documento sin
+sección pertenece a General; General no necesita una fila en la base de datos.
+
+Los nombres se limpian y admiten de 1 a 120 caracteres. Las descripciones se
+recortan y admiten hasta 1000. No se aceptan caracteres nulos. `isKey` debe ser
+booleano; `expectedQuantity` admite `null` o un entero entre 1 y 2147483647,
+nunca texto numérico ni decimales. La cantidad es informativa, no una condición
+para marcar documentos recibidos en un matter futuro.
+
+`PATCH` de documento permite cualquiera de esos cinco campos y exige al menos
+uno. Conserva los omitidos; `description: ""`, `sectionId: null`, `isKey: false`
+y `expectedQuantity: null` son cambios explícitos válidos. Cambiar la sección
+añade el documento al final del nuevo grupo y reajusta las posiciones del anterior.
+
+Los nombres de sección son únicos dentro del tipo. Los nombres de documento
+son únicos en toda la plantilla, incluyendo todas sus secciones y General.
+Por ejemplo, usa `Petitioner passport` y `Beneficiary passport`, no dos
+definiciones llamadas `Passport`. La unicidad ignora mayúsculas y espacios
+consecutivos; otros matter types sí pueden reutilizar esos nombres.
+
+Mover acepta exclusivamente `{ "direction": "up" }` o
+`{ "direction": "down" }`. No acepta una posición arbitraria. Las posiciones
+empiezan en 1 y permanecen consecutivas dentro de cada grupo. Un documento no
+cambia de sección al moverlo. Intentar salir del primer o último lugar devuelve
+`400 TEMPLATE_MOVE_OUT_OF_RANGE`, sin guardar cambios.
+
+### Lectura y respuestas
+
+`GET` devuelve esta estructura:
+
+```json
+{
+  "data": {
+    "matterType": {
+      "id": "uuid-del-tipo",
+      "name": "Family Petition",
+      "description": "",
+      "createdAt": "fecha-ISO",
+      "updatedAt": "fecha-ISO",
+      "templateRevision": 2,
+      "documentCount": 1,
+      "keyDocumentCount": 1,
+      "templateStatus": "Ready"
+    },
+    "sections": [
+      {
+        "id": "uuid-de-la-seccion",
+        "matterTypeId": "uuid-del-tipo",
+        "name": "Petitioner",
+        "position": 1,
+        "createdAt": "fecha-ISO",
+        "updatedAt": "fecha-ISO"
+      }
+    ],
+    "documents": [
+      {
+        "id": "uuid-del-documento",
+        "matterTypeId": "uuid-del-tipo",
+        "sectionId": "uuid-de-la-seccion",
+        "name": "Petitioner passport",
+        "description": "Copy of the identification page.",
+        "isKey": true,
+        "expectedQuantity": 1,
+        "position": 1,
+        "createdAt": "fecha-ISO",
+        "updatedAt": "fecha-ISO"
+      }
+    ]
+  }
+}
+```
+
+Las secciones siguen su orden. Los documentos siguen el orden de las secciones
+y después su posición dentro de ellas; General aparece al final. No se incluyen
+registros retirados. Crear devuelve `201`; editar o mover devuelve `200`, con
+`{ "data": <sección o documento>, "templateRevision": <revisión> }`.
+Eliminar devuelve `204`, sin cuerpo; se consulta nuevamente para leer la revisión.
+
+El estado se deriva de los documentos actuales:
+
+| Estado | Condición |
+| --- | --- |
+| `Template required` | No hay documentos. |
+| `Key document required` | Hay documentos, pero ninguno es clave. |
+| `Ready` | Hay al menos un documento clave. |
+
+Esto permite configurar una plantilla incompleta por pasos. `Ready` solo indica
+que su definición cumple la regla mínima; no es un estado de un matter ni
+significa que un cliente entregó documentos.
+
+### Identidad, retiros y operaciones simultáneas
+
+Editar conserva el UUID. Eliminar establece `retired_at` en vez de borrar la
+fila. Volver a crear el mismo nombre genera un UUID nuevo: no restaura la
+definición anterior. No hay una ruta de restauración en este bloque.
+
+Retirar una sección conserva sus documentos actuales y sus UUID: los coloca
+después de los existentes en General, manteniendo su orden relativo. Los
+documentos ya retirados conservan su referencia histórica a la sección anterior.
+La clave foránea compuesta impide usar una sección de otro matter type.
+
+Toda modificación bloquea la fila de su matter type durante una transacción.
+Así se ordenan las escrituras simultáneas de esa plantilla sin bloquear otras.
+La definición, los cambios de orden y el incremento de `templateRevision` se
+confirman juntos. Una validación fallida, conflicto o error SQL revierte todo.
+Un `PATCH` sin cambio efectivo conserva la revisión y las fechas del elemento.
+La edición del nombre o descripción del matter type no aumenta esa revisión.
+
+La consulta completa usa una sola sentencia SQL para leer metadatos, secciones
+y documentos con una misma vista consistente de los datos. La vista SQL
+`app.matter_type_template_summary` centraliza los contadores y el estado para
+que coincidan con el catálogo. No es una copia ni una tabla adicional de datos.
+
+Errores específicos: `404 MATTER_TYPE_NOT_FOUND`,
+`404 TEMPLATE_SECTION_NOT_FOUND`, `404 TEMPLATE_DOCUMENT_NOT_FOUND`,
+`400 INVALID_TEMPLATE_SECTION`, `400 TEMPLATE_MOVE_OUT_OF_RANGE`,
+`409 TEMPLATE_SECTION_NAME_ALREADY_EXISTS` y
+`409 TEMPLATE_DOCUMENT_NAME_ALREADY_EXISTS`. Los duplicados incluyen
+`fields.name`; una sección inválida incluye `fields.sectionId`. Se reutilizan
+los controles de sesión, permisos, origen, CSRF, JSON y `400 INVALID_INPUT`.
+
+Este bloque guarda definiciones, no archivos, estados de entrega, cantidades
+recibidas ni comentarios de matters. La conservación de UUID y filas retiradas
+prepara la sincronización futura; el backend aún no tiene matters que sincronizar.
 
 ## PostgreSQL local
 
@@ -374,6 +545,49 @@ Archivos de este bloque:
 - No cambian dependencias, frontend, mocks ni los archivos del bloque de usuarios
   y contraseñas.
 
+Para leer las plantillas, empieza por `src/modules/templates/templates.routes.js`.
+Observa cómo se hereda `matterTypeId` de la ruta montada en `app.js`, cómo se
+aplican los permisos y cómo `template.validation.js` valida cada cuerpo.
+Luego sigue este recorrido:
+
+```text
+templates.routes.js → templates.controller.js
+→ sections.service.js / documents.service.js
+→ templates.service.js (transacción y bloqueo compartidos)
+→ sections.repository.js / documents.repository.js
+→ PostgreSQL
+```
+
+Para la consulta completa, el recorrido es más corto: controlador →
+`getTemplate` en `templates.service.js` → `findTemplate` en
+`templates.repository.js`. La consulta agrupa filas relacionales en JSON para
+la respuesta, pero las tablas no guardan el template como un bloque JSON.
+
+Lee después `006_create_templates.js`: contiene las dos tablas, la revisión,
+las restricciones, los índices parciales y la vista compartida con el catálogo.
+Vuelve a los servicios para entender los retiros y movimientos. En particular,
+el documento se busca y sus campos se combinan después de obtener el bloqueo;
+así, dos ediciones parciales concurrentes no pierden los cambios de la otra.
+Termina con `tests/template.validation.test.js` y
+`tests/integration/templates.test.js`: sus nombres describen ejemplos de cada
+regla, incluidos errores, carreras y reversión completa.
+
+Archivos del bloque de plantillas:
+
+- Nuevos: `src/db/migrations/006_create_templates.js` y los nueve archivos de
+  `src/modules/templates/`: `template.validation.js`, `templates.routes.js`,
+  `templates.controller.js`, `templates.service.js`, `templates.repository.js`,
+  `sections.service.js`, `sections.repository.js`, `documents.service.js` y
+  `documents.repository.js`.
+- Pruebas nuevas: `tests/template.validation.test.js` y
+  `tests/integration/templates.test.js`.
+- Actualizados: `src/app.js`, `matterTypes.repository.js`,
+  `matterTypes.service.js`, `tests/integration/matterTypes.test.js`,
+  `scripts/verifyDatabases.js` y este README. Las respuestas del catálogo ahora
+  incluyen el resumen de su plantilla; crear o editar una categoría obtiene
+  ese resumen dentro de su propia transacción.
+- Sin cambios: frontend, mocks, dependencias, autenticación y usuarios.
+
 ## Flujo de una solicitud
 
 ```text
@@ -382,6 +596,8 @@ Navegador
 → analizador JSON
 → ruta
 → controller
+→ service (reglas y transacciones)
+→ repository (consultas SQL)
 → PostgreSQL
 → respuesta JSON
 ```
@@ -448,8 +664,17 @@ con claves distintas de las del login.
 La quinta migración crea `app.matter_types`. Contiene UUID, nombre, descripción
 y fechas; añade validación de nombres limpios, unicidad sin distinguir mayúsculas,
 límite de descripción y el trigger de `updated_at`. Se revoca el acceso de
-`PUBLIC` y no se insertan categorías de ejemplo. No hay relaciones con templates
-o matters todavía.
+`PUBLIC` y no se insertan categorías de ejemplo.
+
+La sexta migración añade `template_revision` a los tipos y crea
+`app.template_sections` y `app.template_documents`, con UUID estables,
+posiciones y fechas de retiro. Sus índices únicos parciales permiten reutilizar
+nombres retirados sin confundir identificadores. La relación compuesta de
+documento a sección asegura que ambos pertenezcan al mismo tipo. Las cantidades
+son enteros positivos o nulas y las fechas se actualizan mediante triggers.
+La vista `app.matter_type_template_summary` deriva contadores y estado de los
+documentos actuales. Se revoca el acceso público y no se insertan ejemplos.
+Todavía no se crean tablas de matters ni datos de recepción de documentos.
 
 Cada migración incluye `up` y `down`. `up` aplica el cambio. `down` existe para
 corregir el desarrollo, pero no debe utilizarse improvisadamente sobre datos de
@@ -651,6 +876,16 @@ limpieza de nombres, límites de campos, protección SQL, ediciones parciales,
 unicidad en creación y edición concurrentes, paginación alfabética, persistencia
 al recrear la API y errores seguros. Se eliminan únicamente los registros
 identificados como creados por la suite; no se vacía la tabla completa.
+
+Las pruebas de plantillas comprueban permisos en todas sus rutas, entradas,
+unicidad global de documentos, secciones del tipo correcto, posiciones y
+movimientos, retiros sin borrado, conservación de UUID, reutilización de nombres
+con UUID nuevos, estados derivados y revisiones. También comprueban carreras
+de creación y edición, retiro simultáneo de una sección, lectura consistente
+durante una escritura no confirmada y reversión cuando falla el incremento de
+revisión. Solo eliminan físicamente sus propias definiciones de prueba,
+después sus secciones y finalmente los tipos que crearon. No tocan los datos
+ni la cuenta administrativa de desarrollo.
 
 ## Preparación del despliegue
 

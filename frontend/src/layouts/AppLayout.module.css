@@ -147,6 +147,19 @@
   border-radius: 14px;
 }
 
+.accountArea { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.accountArea .account, .accountArea > div { grid-column: 1 / -1; }
+.accountAction {
+  padding: 9px 5px;
+  color: var(--color-sidebar-text);
+  font-size: 0.75rem;
+  text-align: center;
+  background: rgb(255 255 255 / 5%);
+  border: 1px solid rgb(255 255 255 / 10%);
+  border-radius: 8px;
+}
+.accountAction:hover { background: rgb(255 255 255 / 12%); }
+
 .accountAvatar {
   width: 36px;
   height: 36px;

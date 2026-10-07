@@ -9,8 +9,14 @@ import { getMatterTypeTemplateStatus } from '../../matterTypes/utils/matterTypeT
 import TemplateSectionForm from '../components/TemplateSectionForm.jsx'
 import { groupDocumentsBySection } from '../utils/groupDocumentsBySection.js'
 import styles from './TemplateDetailPage.module.css'
+import { useAuth } from '../../auth/useAuth.js'
+import { useTemplate } from '../../catalog/useTemplate.js'
+import { useAsyncAction } from '../../../hooks/useAsyncAction.js'
+import RequestFeedback from '../../../components/common/RequestFeedback.jsx'
 
 function TemplateDocumentList({
+  canEdit,
+  isBusy,
   matterTypeId,
   documents,
   pendingDeletionId,
@@ -48,11 +54,11 @@ function TemplateDocumentList({
               </span>
             </div>
 
-            <div className={styles.documentActions}>
+            {canEdit && <div className={styles.documentActions}>
               <div className={styles.orderActions}>
                 <button
                   type="button"
-                  disabled={index === 0}
+                  disabled={isBusy || index === 0}
                   aria-label={`Move ${document.name} up`}
                   onClick={() => onMove(document.id, 'up')}
                 >
@@ -60,7 +66,7 @@ function TemplateDocumentList({
                 </button>
                 <button
                   type="button"
-                  disabled={index === documents.length - 1}
+                  disabled={isBusy || index === documents.length - 1}
                   aria-label={`Move ${document.name} down`}
                   onClick={() => onMove(document.id, 'down')}
                 >
@@ -70,34 +76,36 @@ function TemplateDocumentList({
 
               <div className={styles.recordActions}>
                 <Link
+                  aria-disabled={isBusy}
+                  onClick={(event) => { if (isBusy) event.preventDefault() }}
                   to={`/admin/templates/${matterTypeId}/documents/${document.id}/edit`}
                 >
                   Edit
                 </Link>
                 <button
                   type="button"
+                  disabled={isBusy}
                   onClick={() => onRequestDeletion(document.id)}
                 >
                   Delete
                 </button>
               </div>
-            </div>
+            </div>}
 
             {pendingDeletionId === document.id && (
               <div className={styles.deleteConfirmation} role="alert">
                 <div>
                   <strong>Remove this document?</strong>
                   <p>
-                    Existing matters will retain its tracking under Previous
-                    requirements. It will no longer affect their active checklist
-                    or automatic status. New matters will not include it.
+                    This definition will leave the current template. Its database
+                    record will be retained rather than permanently deleted.
                   </p>
                 </div>
                 <div className={styles.confirmationActions}>
-                  <Button variant="secondary" onClick={onCancelDeletion}>
+                  <Button variant="secondary" onClick={onCancelDeletion} disabled={isBusy}>
                     Cancel
                   </Button>
-                  <Button variant="danger" onClick={() => onDelete(document.id)}>
+                  <Button variant="danger" onClick={() => onDelete(document.id)} disabled={isBusy}>
                     Remove document
                   </Button>
                 </div>
@@ -111,6 +119,8 @@ function TemplateDocumentList({
 }
 
 function TemplateSectionGroup({
+  canEdit,
+  isBusy,
   group,
   sectionIndex,
   sectionCount,
@@ -163,11 +173,11 @@ function TemplateSectionGroup({
           </span>
         </button>
 
-        {!group.isGeneral && (
+        {canEdit && !group.isGeneral && (
           <div className={styles.sectionActions}>
             <button
               type="button"
-              disabled={sectionIndex === 0}
+              disabled={isBusy || sectionIndex === 0}
               aria-label={`Move ${group.name} up`}
               onClick={() => onMoveSection(group.id, 'up')}
             >
@@ -175,7 +185,7 @@ function TemplateSectionGroup({
             </button>
             <button
               type="button"
-              disabled={sectionIndex === sectionCount - 1}
+              disabled={isBusy || sectionIndex === sectionCount - 1}
               aria-label={`Move ${group.name} down`}
               onClick={() => onMoveSection(group.id, 'down')}
             >
@@ -183,6 +193,7 @@ function TemplateSectionGroup({
             </button>
             <button
               type="button"
+              disabled={isBusy}
               onClick={() => {
                 setIsExpanded(true)
                 onStartRename(group.id)
@@ -193,6 +204,7 @@ function TemplateSectionGroup({
             <button
               className={styles.deleteSectionButton}
               type="button"
+              disabled={isBusy}
               onClick={() => onRequestSectionDeletion(group.id)}
             >
               Delete
@@ -212,10 +224,10 @@ function TemplateSectionGroup({
             </p>
           </div>
           <div className={styles.confirmationActions}>
-            <Button variant="secondary" onClick={onCancelSectionDeletion}>
+            <Button variant="secondary" onClick={onCancelSectionDeletion} disabled={isBusy}>
               Cancel
             </Button>
-            <Button variant="danger" onClick={() => onDeleteSection(group.id)}>
+            <Button variant="danger" onClick={() => onDeleteSection(group.id)} disabled={isBusy}>
               Delete section
             </Button>
           </div>
@@ -240,6 +252,8 @@ function TemplateSectionGroup({
 
           {group.documents.length > 0 ? (
             <TemplateDocumentList
+              canEdit={canEdit}
+              isBusy={isBusy}
               matterTypeId={matterType.id}
               documents={group.documents}
               pendingDeletionId={pendingDocumentDeletionId}
@@ -251,12 +265,12 @@ function TemplateSectionGroup({
           ) : (
             <div className={styles.emptySection}>
               <p>No documents have been assigned to this section.</p>
-              <ButtonLink
+              {canEdit && <ButtonLink
                 to={`/admin/templates/${matterType.id}/documents/new`}
                 variant="secondary"
               >
                 Add document
-              </ButtonLink>
+              </ButtonLink>}
             </div>
           )}
         </div>
@@ -267,8 +281,12 @@ function TemplateSectionGroup({
 
 function TemplateDetailPage() {
   const { matterTypeId } = useParams()
+  const { user } = useAuth()
+  const canEdit = user.systemRole === 'ADMIN'
+  const template = useTemplate(matterTypeId)
+  const action = useAsyncAction()
   const {
-    matterTypes,
+    isMutating,
     createTemplateSection,
     updateTemplateSection,
     deleteTemplateSection,
@@ -282,16 +300,17 @@ function TemplateDetailPage() {
   const [pendingSectionDeletionId, setPendingSectionDeletionId] = useState(null)
   const [pendingDocumentDeletionId, setPendingDocumentDeletionId] = useState(null)
   const [notice, setNotice] = useState(location.state?.notice ?? '')
-  const matterType = matterTypes.find(
-    (currentMatterType) => currentMatterType.id === matterTypeId,
-  )
+  const matterType = template.data
+  const isBusy = isMutating || action.isPending || template.status === 'Loading'
 
   if (!matterType) {
+    if (template.status !== 'Ready') return <RequestFeedback loading={template.status === 'Loading'}
+      message="Loading the template…" error={template.error} onRetry={template.retry} />
     return (
       <PlaceholderPage
         eyebrow="Templates"
         title="Template not found"
-        description="The requested document template does not exist in the preview catalog."
+        description="The requested document template does not exist in the catalog."
         backTo="/admin/templates"
         backLabel="Back to templates"
       />
@@ -309,20 +328,20 @@ function TemplateDetailPage() {
       })
     : []
 
-  function handleCreateSection(sectionName) {
-    const section = createTemplateSection(matterType.id, sectionName)
+  async function handleCreateSection(sectionName) {
+    const section = await createTemplateSection(matterType.id, sectionName)
 
     if (!section) {
       return false
     }
 
     setShowSectionForm(false)
-    setNotice('Section added to this template for the preview session.')
+    setNotice('Section saved to the template.')
     return true
   }
 
-  function handleRenameSection(sectionId, sectionName) {
-    const section = updateTemplateSection(
+  async function handleRenameSection(sectionId, sectionName) {
+    const section = await updateTemplateSection(
       matterType.id,
       sectionId,
       sectionName,
@@ -333,55 +352,57 @@ function TemplateDetailPage() {
     }
 
     setEditingSectionId(null)
-    setNotice('Section name updated for this preview session.')
+    setNotice('Section name saved to the database.')
     return true
   }
 
-  function handleDeleteSection(sectionId) {
+  async function handleDeleteSection(sectionId) {
     const section = matterType.sections.find(
       (currentSection) => currentSection.id === sectionId,
     )
     const documentCount = matterType.documents.filter(
       (document) => document.sectionId === sectionId,
     ).length
-    const wasDeleted = deleteTemplateSection(matterType.id, sectionId)
+    const result = await action.run(() => deleteTemplateSection(matterType.id, sectionId))
 
-    if (wasDeleted) {
+    if (result.ok) {
       setPendingSectionDeletionId(null)
       setEditingSectionId(null)
       setNotice(
         `Section “${section.name}” removed. ${documentCount} ${
           documentCount === 1 ? 'document was' : 'documents were'
-        } moved to General documents. Existing matters were synchronized.`,
+        } moved to General documents.`,
       )
     }
   }
 
-  function handleMoveSection(sectionId, direction) {
-    moveTemplateSection(matterType.id, sectionId, direction)
+  async function handleMoveSection(sectionId, direction) {
+    await action.run(() => moveTemplateSection(matterType.id, sectionId, direction))
     setPendingSectionDeletionId(null)
     setNotice('')
   }
 
-  function handleDeleteDocument(documentId) {
-    const wasDeleted = deleteTemplateDocument(matterType.id, documentId)
+  async function handleDeleteDocument(documentId) {
+    const result = await action.run(() => deleteTemplateDocument(matterType.id, documentId))
 
-    if (wasDeleted) {
+    if (result.ok) {
       setPendingDocumentDeletionId(null)
       setNotice(
-        'Document removed. Its tracking is preserved under Previous requirements in existing matters.',
+        'Document removed from the current template. Its database record was retained.',
       )
     }
   }
 
-  function handleMoveDocument(documentId, direction) {
-    moveTemplateDocument(matterType.id, documentId, direction)
+  async function handleMoveDocument(documentId, direction) {
+    await action.run(() => moveTemplateDocument(matterType.id, documentId, direction))
     setPendingDocumentDeletionId(null)
     setNotice('')
   }
 
   return (
-    <section className={styles.page}>
+    <section className={styles.page} aria-busy={isBusy}>
+      <RequestFeedback error={action.error} />
+      {isBusy && <p role="status">Updating the template…</p>}
       {notice && (
         <p className={styles.notice} role="status">
           {notice}
@@ -399,9 +420,10 @@ function TemplateDetailPage() {
         contextLabel="Template status"
         contextValue={templateStatus}
         action={
-          <div className={styles.heroActions}>
+          canEdit ? <div className={styles.heroActions}>
             <Button
               variant="secondary"
+              disabled={isBusy}
               onClick={() => {
                 setShowSectionForm(true)
                 setEditingSectionId(null)
@@ -411,10 +433,10 @@ function TemplateDetailPage() {
             >
               Add section
             </Button>
-            <ButtonLink to={`/admin/templates/${matterType.id}/documents/new`}>
+            <ButtonLink to={`/admin/templates/${matterType.id}/documents/new`} disabled={isBusy}>
               Add document
             </ButtonLink>
-          </div>
+          </div> : null
         }
       />
 
@@ -454,6 +476,8 @@ function TemplateDetailPage() {
         <div className={styles.sectionGroups}>
           {documentGroups.map((group, index) => (
             <TemplateSectionGroup
+              canEdit={canEdit}
+              isBusy={isBusy}
               key={group.id}
               group={group}
               sectionIndex={index}
@@ -492,6 +516,8 @@ function TemplateDetailPage() {
         </div>
       ) : matterType.documents.length > 0 ? (
         <TemplateDocumentList
+          canEdit={canEdit}
+          isBusy={isBusy}
           matterTypeId={matterType.id}
           documents={matterType.documents}
           pendingDeletionId={pendingDocumentDeletionId}
@@ -510,16 +536,15 @@ function TemplateDetailPage() {
             Add the first document before this matter type can be used to create
             matters.
           </p>
-          <ButtonLink to={`/admin/templates/${matterType.id}/documents/new`}>
+          {canEdit && <ButtonLink to={`/admin/templates/${matterType.id}/documents/new`}>
             Add first document
-          </ButtonLink>
+          </ButtonLink>}
         </div>
       )}
 
       <p className={styles.snapshotNote}>
-        Changes synchronize with all matters of this type, preserving their
-        document tracking. Automatic statuses are recalculated; manual statuses
-        stay unchanged, including Accepted and Sent.
+        This template is saved to the database. Editing preserves definition
+        identifiers; removals retain their database records. Matter tracking will be connected later.
       </p>
     </section>
   )

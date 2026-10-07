@@ -1,15 +1,17 @@
 import { useEffect, useRef, useState } from 'react'
-import { NavLink, Outlet } from 'react-router'
+import { Link, NavLink, Outlet } from 'react-router'
+import { useAuth } from '../features/auth/useAuth.js'
+import { useAsyncAction } from '../hooks/useAsyncAction.js'
+import RequestFeedback from '../components/common/RequestFeedback.jsx'
 import styles from './AppLayout.module.css'
 
 const workspaceLinks = [
   { to: '/matters', label: 'Matters', initials: 'MT' },
 ]
 
-const administrationLinks = [
+const catalogLinks = [
   { to: '/admin/matter-types', label: 'Matter types', initials: 'TY' },
   { to: '/admin/templates', label: 'Templates', initials: 'TP' },
-  { to: '/admin/users', label: 'Users', initials: 'US' },
 ]
 
 function NavigationLink({ item, onNavigate }) {
@@ -30,6 +32,9 @@ function NavigationLink({ item, onNavigate }) {
 }
 
 function AppLayout() {
+  const { user, session } = useAuth()
+  const logoutAction = useAsyncAction()
+  const initials = user.fullName.split(/\s+/).slice(0, 2).map((word) => word[0]).join('').toUpperCase()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isMobileLayout, setIsMobileLayout] = useState(() =>
     window.matchMedia('(max-width: 960px)').matches,
@@ -135,13 +140,13 @@ function AppLayout() {
         ref={sidebarRef}
         className={`${styles.sidebar} ${isMenuOpen ? styles.sidebarOpen : ''}`}
         aria-hidden={isMobileLayout && !isMenuOpen}
-        inert={isMobileLayout && !isMenuOpen ? '' : undefined}
+        inert={isMobileLayout && !isMenuOpen}
       >
         <div className={styles.brand}>
           <span className={styles.brandMark}>GD</span>
           <div>
             <strong>Gestor documental</strong>
-            <span>Matter tracking</span>
+            <span>Document workspace</span>
           </div>
         </div>
 
@@ -154,19 +159,31 @@ function AppLayout() {
           </div>
 
           <div className={styles.navGroup}>
-            <p className={styles.navLabel}>Administration</p>
-            {administrationLinks.map((item) => (
+            <p className={styles.navLabel}>Catalog</p>
+            {catalogLinks.map((item) => (
               <NavigationLink key={item.to} item={item} onNavigate={closeMenu} />
             ))}
           </div>
+          {user.systemRole === 'ADMIN' && <div className={styles.navGroup}>
+            <p className={styles.navLabel}>Administration</p>
+            <NavigationLink item={{ to: '/admin/users', label: 'Users', initials: 'US' }} onNavigate={closeMenu} />
+          </div>}
         </nav>
 
+        <div className={styles.accountArea}>
         <div className={styles.account}>
-          <span className={styles.accountAvatar}>AU</span>
+          <span className={styles.accountAvatar} aria-hidden="true">{initials}</span>
           <div className={styles.accountDetails}>
-            <strong>Administrator</strong>
-            <span>admin@example.com</span>
+            <strong>{user.fullName}</strong>
+            <span>{user.username} · {user.systemRole === 'ADMIN' ? 'Administrator' : 'Member'}</span>
           </div>
+        </div>
+        <Link className={styles.accountAction} to="/change-password" onClick={closeMenu}>Change password</Link>
+        <button className={styles.accountAction} disabled={logoutAction.isPending}
+          onClick={() => logoutAction.run(() => session.logout())}>
+          {logoutAction.isPending ? 'Signing out…' : 'Sign out'}
+        </button>
+        <RequestFeedback error={logoutAction.error} />
         </div>
       </aside>
 

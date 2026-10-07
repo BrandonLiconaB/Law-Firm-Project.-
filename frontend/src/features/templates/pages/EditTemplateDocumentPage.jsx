@@ -4,14 +4,17 @@ import PageHero from '../../../components/common/PageHero.jsx'
 import PlaceholderPage from '../../../components/common/PlaceholderPage.jsx'
 import TemplateDocumentForm from '../components/TemplateDocumentForm.jsx'
 import styles from './TemplateDocumentFormPage.module.css'
+import { useTemplate } from '../../catalog/useTemplate.js'
+import RequestFeedback from '../../../components/common/RequestFeedback.jsx'
 
 function EditTemplateDocumentPage() {
   const { matterTypeId, documentId } = useParams()
-  const { matterTypes, updateTemplateDocument } = useAppData()
+  const { updateTemplateDocument } = useAppData()
   const navigate = useNavigate()
-  const matterType = matterTypes.find(
-    (currentMatterType) => currentMatterType.id === matterTypeId,
-  )
+  const template = useTemplate(matterTypeId)
+  const matterType = template.data
+  if (template.status !== 'Ready') return <RequestFeedback loading={template.status === 'Loading'}
+    message="Loading the template…" error={template.error} onRetry={template.retry} />
   const document = matterType?.documents.find(
     (currentDocument) => currentDocument.id === documentId,
   )
@@ -21,7 +24,7 @@ function EditTemplateDocumentPage() {
       <PlaceholderPage
         eyebrow="Templates"
         title="Document not found"
-        description="The requested template document does not exist in the preview catalog."
+        description="The requested template document does not exist in the current template."
         backTo={
           matterType ? `/admin/templates/${matterType.id}` : '/admin/templates'
         }
@@ -30,8 +33,8 @@ function EditTemplateDocumentPage() {
     )
   }
 
-  function handleUpdateDocument(documentData) {
-    const updatedDocument = updateTemplateDocument(
+  async function handleUpdateDocument(documentData) {
+    const updatedDocument = await updateTemplateDocument(
       matterType.id,
       document.id,
       documentData,
@@ -43,7 +46,7 @@ function EditTemplateDocumentPage() {
 
     navigate(`/admin/templates/${matterType.id}`, {
       state: {
-        notice: 'Template document updated for this preview session.',
+        notice: 'Template document saved to the database.',
       },
     })
   }
@@ -53,7 +56,7 @@ function EditTemplateDocumentPage() {
       <PageHero
         eyebrow={`Template · ${matterType.name}`}
         title="Edit document"
-        description="Update this requirement in new and existing matters."
+        description="Update this requirement while preserving its identifier."
         contextLabel="Current document"
         contextValue={document.name}
         tone="indigo"
@@ -69,8 +72,7 @@ function EditTemplateDocumentPage() {
       />
 
       <p className={styles.sessionNote}>
-        Existing matters will receive the updated definition without losing
-        statuses, received quantities, comments, or document tracking dates.
+        Changes preserve the document UUID. Matter tracking will be connected in a later block.
       </p>
     </section>
   )

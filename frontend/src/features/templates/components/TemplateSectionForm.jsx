@@ -1,5 +1,7 @@
 import { useState } from 'react'
 import Button from '../../../components/ui/Button.jsx'
+import RequestFeedback from '../../../components/common/RequestFeedback.jsx'
+import { useAsyncAction } from '../../../hooks/useAsyncAction.js'
 import {
   cleanTemplateSectionName,
   isTemplateSectionNameDuplicate,
@@ -15,12 +17,15 @@ function TemplateSectionForm({
 }) {
   const [name, setName] = useState(initialSection?.name ?? '')
   const [error, setError] = useState('')
+  const action = useAsyncAction()
+  const nameError = error || action.error?.fields?.name
 
-  function handleSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault()
 
     const cleanedName = cleanTemplateSectionName(name)
 
+    if (cleanedName.length > 120) { setError('Name cannot exceed 120 characters.'); return }
     if (!cleanedName) {
       setError('Section name is required.')
       return
@@ -37,15 +42,13 @@ function TemplateSectionForm({
       return
     }
 
-    const wasSubmitted = onSubmit(cleanedName)
-
-    if (wasSubmitted === false) {
-      setError('The section could not be saved. Review the name and try again.')
-    }
+    setError('')
+    await action.run(() => onSubmit(cleanedName))
   }
 
   return (
-    <form className={styles.form} noValidate onSubmit={handleSubmit}>
+    <form className={styles.form} noValidate onSubmit={handleSubmit} aria-busy={action.isPending}>
+      <RequestFeedback error={action.error} />
       <div className={styles.field}>
         <label htmlFor={`template-section-name-${initialSection?.id ?? 'new'}`}>
           Section name
@@ -53,27 +56,30 @@ function TemplateSectionForm({
         <input
           id={`template-section-name-${initialSection?.id ?? 'new'}`}
           type="text"
+          maxLength={120}
+          disabled={action.isPending}
           value={name}
           placeholder="Example: Petitioner"
           autoComplete="off"
           autoFocus
-          aria-describedby={error ? 'template-section-name-error' : undefined}
-          aria-invalid={Boolean(error)}
+          aria-describedby={nameError ? 'template-section-name-error' : undefined}
+          aria-invalid={Boolean(nameError)}
           onChange={(event) => {
             setName(event.target.value)
             setError('')
+            action.clearError()
           }}
         />
-        {error && (
+        {nameError && (
           <small id="template-section-name-error" className={styles.errorMessage}>
-            {error}
+            {nameError}
           </small>
         )}
       </div>
 
       <div className={styles.actions}>
-        <Button type="submit">{submitLabel}</Button>
-        <Button variant="secondary" onClick={onCancel}>
+        <Button type="submit" disabled={action.isPending}>{action.isPending ? 'Saving…' : submitLabel}</Button>
+        <Button variant="secondary" onClick={onCancel} disabled={action.isPending}>
           Cancel
         </Button>
       </div>

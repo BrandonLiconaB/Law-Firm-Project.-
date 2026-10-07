@@ -1,12 +1,12 @@
 import { RouterProvider } from 'react-router/dom'
 import { router } from '../routes/router.jsx'
-import AppDataProvider from './providers/AppDataProvider.jsx'
+import AuthProvider from '../features/auth/AuthProvider.jsx'
 
 function App() {
   return (
-    <AppDataProvider>
+    <AuthProvider>
       <RouterProvider router={router} />
-    </AppDataProvider>
+    </AuthProvider>
   )
 }
 

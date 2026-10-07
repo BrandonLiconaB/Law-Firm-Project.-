@@ -8,8 +8,8 @@ function NewMatterTypePage() {
   const { matterTypes, createMatterType } = useAppData()
   const navigate = useNavigate()
 
-  function handleCreateMatterType(matterTypeData) {
-    const matterType = createMatterType(matterTypeData)
+  async function handleCreateMatterType(matterTypeData) {
+    const matterType = await createMatterType(matterTypeData)
 
     if (!matterType) {
       return
@@ -42,7 +42,7 @@ function NewMatterTypePage() {
       />
 
       <p className={styles.sessionNote}>
-        Preview data is stored only while this browser session is open.
+        Matter types are saved to the database after server confirmation.
       </p>
     </section>
   )

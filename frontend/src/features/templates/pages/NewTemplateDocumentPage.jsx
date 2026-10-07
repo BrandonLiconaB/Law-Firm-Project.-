@@ -4,29 +4,32 @@ import PageHero from '../../../components/common/PageHero.jsx'
 import PlaceholderPage from '../../../components/common/PlaceholderPage.jsx'
 import TemplateDocumentForm from '../components/TemplateDocumentForm.jsx'
 import styles from './TemplateDocumentFormPage.module.css'
+import { useTemplate } from '../../catalog/useTemplate.js'
+import RequestFeedback from '../../../components/common/RequestFeedback.jsx'
 
 function NewTemplateDocumentPage() {
   const { matterTypeId } = useParams()
-  const { matterTypes, createTemplateDocument } = useAppData()
+  const { createTemplateDocument } = useAppData()
   const navigate = useNavigate()
-  const matterType = matterTypes.find(
-    (currentMatterType) => currentMatterType.id === matterTypeId,
-  )
+  const template = useTemplate(matterTypeId)
+  const matterType = template.data
+  if (template.status !== 'Ready') return <RequestFeedback loading={template.status === 'Loading'}
+    message="Loading the template…" error={template.error} onRetry={template.retry} />
 
   if (!matterType) {
     return (
       <PlaceholderPage
         eyebrow="Templates"
         title="Template not found"
-        description="The requested document template does not exist in the preview catalog."
+        description="The requested document template does not exist in the catalog."
         backTo="/admin/templates"
         backLabel="Back to templates"
       />
     )
   }
 
-  function handleCreateDocument(documentData) {
-    const document = createTemplateDocument(matterType.id, documentData)
+  async function handleCreateDocument(documentData) {
+    const document = await createTemplateDocument(matterType.id, documentData)
 
     if (!document) {
       return
@@ -34,7 +37,7 @@ function NewTemplateDocumentPage() {
 
     navigate(`/admin/templates/${matterType.id}`, {
       state: {
-        notice: 'Document added to this template for the preview session.',
+        notice: 'Document saved to the template.',
       },
     })
   }
@@ -44,7 +47,7 @@ function NewTemplateDocumentPage() {
       <PageHero
         eyebrow={`Template · ${matterType.name}`}
         title="Add document"
-        description="Add a requirement to new and existing matters of this type."
+        description="Add a document requirement to this template."
         contextLabel="Document order"
         contextValue={`Added as item ${matterType.documents.length + 1}`}
       />
@@ -58,8 +61,7 @@ function NewTemplateDocumentPage() {
       />
 
       <p className={styles.sessionNote}>
-        Existing matters will receive this document as Pending. Their current
-        document tracking and manually selected workflow status will be preserved.
+        This definition is saved to the database. Matter tracking will be connected in a later block.
       </p>
     </section>
   )

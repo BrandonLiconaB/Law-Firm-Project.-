@@ -36,8 +36,12 @@ for (const [databaseName, connectionString] of databases) {
     const tables = await client.query(`
       SELECT table_name
       FROM information_schema.tables
-      WHERE table_schema = 'app'
+      WHERE table_schema = 'app' AND table_type = 'BASE TABLE'
       ORDER BY table_name
+    `)
+    const views = await client.query(`
+      SELECT table_name FROM information_schema.views
+      WHERE table_schema = 'app' ORDER BY table_name
     `)
     const userIndexes = await client.query(`
       SELECT indexname
@@ -102,6 +106,38 @@ for (const [databaseName, connectionString] of databases) {
       ORDER BY trigger_name
     `)
     const matterTypeCount = await client.query('SELECT count(*)::integer AS count FROM app.matter_types')
+    const templateColumns = await client.query(`
+      SELECT table_name, column_name, data_type, is_nullable, character_maximum_length
+      FROM information_schema.columns
+      WHERE table_schema = 'app' AND table_name IN ('template_sections', 'template_documents')
+      ORDER BY table_name, ordinal_position
+    `)
+    const templateIndexes = await client.query(`
+      SELECT tablename, indexname FROM pg_indexes
+      WHERE schemaname = 'app' AND tablename IN ('template_sections', 'template_documents')
+      ORDER BY tablename, indexname
+    `)
+    const templateConstraints = await client.query(`
+      SELECT c.conrelid::regclass::text AS "tableName", c.conname AS name,
+        pg_get_constraintdef(c.oid) AS definition
+      FROM pg_constraint c
+      WHERE c.conrelid IN ('app.template_sections'::regclass, 'app.template_documents'::regclass)
+      ORDER BY c.conrelid::regclass::text, c.conname
+    `)
+    const templateTriggers = await client.query(`
+      SELECT event_object_table AS "tableName", trigger_name AS name
+      FROM information_schema.triggers
+      WHERE event_object_schema = 'app'
+        AND event_object_table IN ('template_sections', 'template_documents')
+      ORDER BY event_object_table, trigger_name
+    `)
+    const templateCounts = await client.query(`
+      SELECT
+        (SELECT count(*)::integer FROM app.template_sections WHERE retired_at IS NULL) AS "currentSections",
+        (SELECT count(*)::integer FROM app.template_sections WHERE retired_at IS NOT NULL) AS "retiredSections",
+        (SELECT count(*)::integer FROM app.template_documents WHERE retired_at IS NULL) AS "currentDocuments",
+        (SELECT count(*)::integer FROM app.template_documents WHERE retired_at IS NOT NULL) AS "retiredDocuments"
+    `)
 
     console.log(
       JSON.stringify({
@@ -110,6 +146,7 @@ for (const [databaseName, connectionString] of databases) {
         functions: functions.rows.map((row) => row.routine_name),
         migrations: migrations.rows.map((row) => row.name),
         tables: tables.rows.map((row) => row.table_name),
+        views: views.rows.map((row) => row.table_name),
         userIndexes: userIndexes.rows.map((row) => row.indexname),
         userConstraints: userConstraints.rows.map(
           (row) => row.constraint_name,
@@ -126,6 +163,13 @@ for (const [databaseName, connectionString] of databases) {
           indexes: matterTypeIndexes.rows.map((row) => row.indexname),
           constraints: matterTypeConstraints.rows.map((row) => row.constraint_name),
           triggers: matterTypeTriggers.rows.map((row) => row.trigger_name),
+        },
+        templates: {
+          counts: templateCounts.rows[0],
+          columns: templateColumns.rows,
+          indexes: templateIndexes.rows,
+          constraints: templateConstraints.rows,
+          triggers: templateTriggers.rows,
         },
       }),
     )

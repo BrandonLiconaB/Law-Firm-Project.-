@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import Button from '../../../components/ui/Button.jsx'
 import ButtonLink from '../../../components/ui/ButtonLink.jsx'
+import RequestFeedback from '../../../components/common/RequestFeedback.jsx'
+import { useAsyncAction } from '../../../hooks/useAsyncAction.js'
 import {
   cleanTemplateDocumentName,
   isTemplateDocumentNameDuplicate,
@@ -31,8 +33,11 @@ function TemplateDocumentForm({
     initialDocument?.expectedQuantity?.toString() ?? '',
   )
   const [errors, setErrors] = useState({})
+  const action = useAsyncAction()
+  const fieldErrors = { ...action.error?.fields, ...errors }
 
   function clearFieldError(fieldName) {
+    action.clearError()
     setErrors((currentErrors) => {
       if (!currentErrors[fieldName]) {
         return currentErrors
@@ -44,14 +49,16 @@ function TemplateDocumentForm({
     })
   }
 
-  function handleSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault()
 
     const cleanedName = cleanTemplateDocumentName(name)
     const numericQuantity = Number(expectedQuantity)
     const nextErrors = {}
 
-    if (!cleanedName) {
+    if (cleanedName.length > 120) {
+      nextErrors.name = 'Name cannot exceed 120 characters.'
+    } else if (!cleanedName) {
       nextErrors.name = 'Document name is required.'
     } else if (
       isTemplateDocumentNameDuplicate(
@@ -67,11 +74,12 @@ function TemplateDocumentForm({
       tracksQuantity &&
       (!expectedQuantity ||
         !Number.isInteger(numericQuantity) ||
-        numericQuantity < 1)
+        numericQuantity < 1 || numericQuantity > 2147483647)
     ) {
       nextErrors.expectedQuantity =
-        'Expected quantity must be a positive whole number.'
+        'Expected quantity must be a whole number between 1 and 2147483647.'
     }
+    if (description.trim().length > 1000) nextErrors.description = 'Description cannot exceed 1000 characters.'
 
     if (Object.keys(nextErrors).length > 0) {
       setErrors(nextErrors)
@@ -79,42 +87,45 @@ function TemplateDocumentForm({
     }
 
     setErrors({})
-    onSubmit({
+    await action.run(() => onSubmit({
       name: cleanedName,
       description: description.trim(),
       sectionId: sectionId || null,
       isKey,
       expectedQuantity: tracksQuantity ? numericQuantity : null,
-    })
+    }))
   }
 
   return (
-    <form className={styles.form} noValidate onSubmit={handleSubmit}>
+    <form className={styles.form} noValidate onSubmit={handleSubmit} aria-busy={action.isPending}>
+      <RequestFeedback error={action.error} />
       <div className={styles.field}>
         <label htmlFor="template-document-name">Document name</label>
         <input
           id="template-document-name"
           type="text"
+          disabled={action.isPending}
+          maxLength={120}
           value={name}
           placeholder="Example: Passport biographic page"
           autoComplete="off"
           aria-describedby={
-            errors.name
+            fieldErrors.name
               ? 'template-document-name-error'
               : 'template-document-name-help'
           }
-          aria-invalid={Boolean(errors.name)}
+          aria-invalid={Boolean(fieldErrors.name)}
           onChange={(event) => {
             setName(event.target.value)
             clearFieldError('name')
           }}
         />
-        {errors.name ? (
+        {fieldErrors.name ? (
           <small
             id="template-document-name-error"
             className={styles.errorMessage}
           >
-            {errors.name}
+            {fieldErrors.name}
           </small>
         ) : (
           <small id="template-document-name-help" className={styles.helpText}>
@@ -130,10 +141,14 @@ function TemplateDocumentForm({
         <textarea
           id="template-document-description"
           rows="4"
+          disabled={action.isPending}
+          maxLength={1000}
+          aria-invalid={Boolean(fieldErrors.description)}
           value={description}
           placeholder="Describe what should be provided."
-          onChange={(event) => setDescription(event.target.value)}
+          onChange={(event) => { setDescription(event.target.value); clearFieldError('description') }}
         />
+        {fieldErrors.description && <small className={styles.errorMessage}>{fieldErrors.description}</small>}
       </div>
 
       <div className={styles.field}>
@@ -143,7 +158,9 @@ function TemplateDocumentForm({
         <select
           id="template-document-section"
           value={sectionId}
-          onChange={(event) => setSectionId(event.target.value)}
+          disabled={action.isPending}
+          aria-invalid={Boolean(fieldErrors.sectionId)}
+          onChange={(event) => { setSectionId(event.target.value); clearFieldError('sectionId') }}
         >
           <option value="">No section / General documents</option>
           {sections.map((section) => (
@@ -152,12 +169,13 @@ function TemplateDocumentForm({
             </option>
           ))}
         </select>
+        {fieldErrors.sectionId && <small className={styles.errorMessage}>{fieldErrors.sectionId}</small>}
         <small className={styles.helpText}>
           Sections organize the checklist but do not change document rules.
         </small>
       </div>
 
-      <fieldset className={styles.options}>
+      <fieldset className={styles.options} disabled={action.isPending}>
         <legend>Document settings</legend>
 
         <label className={styles.checkOption}>
@@ -200,25 +218,26 @@ function TemplateDocumentForm({
               id="template-document-quantity"
               type="number"
               min="1"
+              max="2147483647"
               step="1"
               value={expectedQuantity}
               aria-describedby={
-                errors.expectedQuantity
+                fieldErrors.expectedQuantity
                   ? 'template-document-quantity-error'
                   : undefined
               }
-              aria-invalid={Boolean(errors.expectedQuantity)}
+              aria-invalid={Boolean(fieldErrors.expectedQuantity)}
               onChange={(event) => {
                 setExpectedQuantity(event.target.value)
                 clearFieldError('expectedQuantity')
               }}
             />
-            {errors.expectedQuantity && (
+            {fieldErrors.expectedQuantity && (
               <small
                 id="template-document-quantity-error"
                 className={styles.errorMessage}
               >
-                {errors.expectedQuantity}
+                {fieldErrors.expectedQuantity}
               </small>
             )}
           </div>
@@ -226,8 +245,8 @@ function TemplateDocumentForm({
       </fieldset>
 
       <div className={styles.actions}>
-        <Button type="submit">{submitLabel}</Button>
-        <ButtonLink to={cancelTo} variant="secondary">
+        <Button type="submit" disabled={action.isPending}>{action.isPending ? 'Saving…' : submitLabel}</Button>
+        <ButtonLink to={cancelTo} variant="secondary" disabled={action.isPending}>
           Cancel
         </ButtonLink>
       </div>

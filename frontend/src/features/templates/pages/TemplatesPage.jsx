@@ -1,10 +1,14 @@
 import { Link } from 'react-router'
 import { useAppData } from '../../../app/providers/useAppData.js'
 import PageHero from '../../../components/common/PageHero.jsx'
+import ButtonLink from '../../../components/ui/ButtonLink.jsx'
+import { useAuth } from '../../auth/useAuth.js'
 import {
   getMatterTypeTemplateStatus,
   isMatterTypeReady,
   MATTER_TYPE_TEMPLATE_STATUSES,
+  getTemplateDocumentCount,
+  getTemplateKeyCount,
 } from '../../matterTypes/utils/matterTypeTemplateStatus.js'
 import styles from './TemplatesPage.module.css'
 
@@ -24,10 +28,12 @@ function TemplateStatus({ matterType }) {
 }
 
 function TemplatesPage() {
+  const { user } = useAuth()
+  const canEdit = user.systemRole === 'ADMIN'
   const { matterTypes } = useAppData()
   const readyCount = matterTypes.filter(isMatterTypeReady).length
   const totalDocumentCount = matterTypes.reduce(
-    (total, matterType) => total + matterType.documents.length,
+    (total, matterType) => total + getTemplateDocumentCount(matterType),
     0,
   )
 
@@ -36,7 +42,7 @@ function TemplatesPage() {
       <PageHero
         eyebrow="Administration"
         title="Templates"
-        description="Configure document requirements shared by new and existing matters."
+        description="View document requirements by matter type. Administrators can configure their sections and definitions."
         contextLabel="Template library"
         contextValue={`${totalDocumentCount} document requirements`}
       />
@@ -54,9 +60,7 @@ function TemplatesPage() {
 
       <div className={styles.templateGrid}>
         {matterTypes.map((matterType) => {
-          const keyDocumentCount = matterType.documents.filter(
-            (document) => document.isKey,
-          ).length
+          const keyDocumentCount = getTemplateKeyCount(matterType)
 
           return (
             <article className={styles.templateCard} key={matterType.id}>
@@ -75,7 +79,7 @@ function TemplatesPage() {
               <dl>
                 <div>
                   <dt>Documents</dt>
-                  <dd>{matterType.documents.length}</dd>
+                  <dd>{getTemplateDocumentCount(matterType)}</dd>
                 </div>
                 <div>
                   <dt>Key documents</dt>
@@ -87,15 +91,20 @@ function TemplatesPage() {
                 className={styles.cardAction}
                 to={`/admin/templates/${matterType.id}`}
               >
-                Manage template
+                {canEdit ? 'Manage template' : 'View template'}
               </Link>
             </article>
           )
         })}
       </div>
+      {matterTypes.length === 0 && <div className={styles.emptyState}>
+        <h2>No templates yet</h2>
+        <p>{canEdit ? 'Create a matter type first, then add its sections and documents.' : 'Ask your administrator to configure the document catalog.'}</p>
+        {canEdit && <ButtonLink to="/admin/matter-types/new">New matter type</ButtonLink>}
+      </div>}
 
       <p className={styles.sessionNote}>
-        Preview data is stored only while this browser session is open.
+        Templates are loaded from the database, not from preview data.
       </p>
     </section>
   )

@@ -2,10 +2,13 @@ import { Link, useLocation } from 'react-router'
 import { useAppData } from '../../../app/providers/useAppData.js'
 import PageHero from '../../../components/common/PageHero.jsx'
 import ButtonLink from '../../../components/ui/ButtonLink.jsx'
+import { useAuth } from '../../auth/useAuth.js'
 import {
   getMatterTypeTemplateStatus,
   isMatterTypeReady,
   MATTER_TYPE_TEMPLATE_STATUSES,
+  getTemplateDocumentCount,
+  getTemplateKeyCount,
 } from '../utils/matterTypeTemplateStatus.js'
 import styles from './MatterTypesPage.module.css'
 
@@ -25,6 +28,8 @@ function TemplateStatus({ matterType }) {
 }
 
 function MatterTypesPage() {
+  const { user } = useAuth()
+  const canEdit = user.systemRole === 'ADMIN'
   const { matterTypes } = useAppData()
   const location = useLocation()
   const readyCount = matterTypes.filter(isMatterTypeReady).length
@@ -46,7 +51,7 @@ function MatterTypesPage() {
         contextValue={`${readyCount} ready for new matters`}
         tone="indigo"
         action={
-          <ButtonLink to="/admin/matter-types/new">New matter type</ButtonLink>
+          canEdit ? <ButtonLink to="/admin/matter-types/new">New matter type</ButtonLink> : null
         }
       />
 
@@ -80,9 +85,7 @@ function MatterTypesPage() {
               </thead>
               <tbody>
                 {matterTypes.map((matterType) => {
-                  const keyDocumentCount = matterType.documents.filter(
-                    (document) => document.isKey,
-                  ).length
+                  const keyDocumentCount = getTemplateKeyCount(matterType)
 
                   return (
                     <tr key={matterType.id}>
@@ -96,16 +99,16 @@ function MatterTypesPage() {
                       <td>
                         <TemplateStatus matterType={matterType} />
                       </td>
-                      <td>{matterType.documents.length}</td>
+                      <td>{getTemplateDocumentCount(matterType)}</td>
                       <td>{keyDocumentCount}</td>
                       <td>
                         <div className={styles.rowActions}>
-                        <Link
+                        {canEdit && <Link
                           className={styles.editLink}
                           to={`/admin/matter-types/${matterType.id}/edit`}
                         >
                           Edit
-                        </Link>
+                        </Link>}
                           <Link
                             className={styles.editLink}
                             to={`/admin/templates/${matterType.id}`}
@@ -123,9 +126,7 @@ function MatterTypesPage() {
 
           <div className={styles.cardList}>
             {matterTypes.map((matterType) => {
-              const keyDocumentCount = matterType.documents.filter(
-                (document) => document.isKey,
-              ).length
+              const keyDocumentCount = getTemplateKeyCount(matterType)
 
               return (
                 <article className={styles.matterTypeCard} key={matterType.id}>
@@ -140,7 +141,7 @@ function MatterTypesPage() {
                   <dl>
                     <div>
                       <dt>Documents</dt>
-                      <dd>{matterType.documents.length}</dd>
+                      <dd>{getTemplateDocumentCount(matterType)}</dd>
                     </div>
                     <div>
                       <dt>Key documents</dt>
@@ -148,12 +149,12 @@ function MatterTypesPage() {
                     </div>
                   </dl>
                   <div className={styles.cardActions}>
-                    <Link
+                    {canEdit && <Link
                       className={styles.cardAction}
                       to={`/admin/matter-types/${matterType.id}/edit`}
                     >
                       Edit type
-                    </Link>
+                    </Link>}
                     <Link
                       className={styles.cardAction}
                       to={`/admin/templates/${matterType.id}`}
@@ -169,15 +170,15 @@ function MatterTypesPage() {
       ) : (
         <div className={styles.emptyState}>
           <h2>No matter types yet</h2>
-          <p>Create the first category for the document catalog.</p>
-          <ButtonLink to="/admin/matter-types/new">
+          <p>{canEdit ? 'Create the first category for the document catalog.' : 'The administrator has not configured the catalog yet.'}</p>
+          {canEdit && <ButtonLink to="/admin/matter-types/new">
             New matter type
-          </ButtonLink>
+          </ButtonLink>}
         </div>
       )}
 
       <p className={styles.sessionNote}>
-        Preview data is stored only while this browser session is open.
+        This catalog uses database records. Reloading the page preserves saved changes.
       </p>
     </section>
   )

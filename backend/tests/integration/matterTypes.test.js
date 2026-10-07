@@ -18,7 +18,10 @@ const origin = 'http://localhost:5173'
 const typeIds = new Set()
 const userIds = new Set()
 const limitKeys = new Set()
-const publicFields = ['createdAt', 'description', 'id', 'name', 'updatedAt']
+const publicFields = [
+  'createdAt', 'description', 'documentCount', 'id', 'keyDocumentCount', 'name',
+  'templateRevision', 'templateStatus', 'updatedAt',
+]
 let server
 let administrator
 let member
@@ -425,7 +428,7 @@ describe('matter type API against isolated PostgreSQL', { concurrency: false }, 
     const id = creation.body.data.id
     const failingApp = createApp({ database: {
       query: (sql, params) => {
-        if (sql.includes('FROM app.matter_types')) throw new Error('Private catalog query detail')
+        if (sql.includes('FROM app.matter_type_template_summary')) throw new Error('Private catalog query detail')
         return database.query(sql, params)
       },
     } })

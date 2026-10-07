@@ -1,13 +1,13 @@
 const MATTER_TYPE_COLUMNS = `
   id, name, description,
-  created_at AS "createdAt", updated_at AS "updatedAt"
+  "createdAt", "updatedAt", "templateRevision", "documentCount", "keyDocumentCount", "templateStatus"
 `
 
 export async function insertMatterType(database, { name, description }) {
   const result = await database.query(
     `INSERT INTO app.matter_types (name, description)
      VALUES ($1, $2)
-     RETURNING ${MATTER_TYPE_COLUMNS}`,
+     RETURNING id`,
     [name, description],
   )
   return result.rows[0]
@@ -20,7 +20,7 @@ export async function updateMatterTypeById(database, id, { name, description }) 
        name = COALESCE($2, name),
        description = COALESCE($3, description)
      WHERE id = $1
-     RETURNING ${MATTER_TYPE_COLUMNS}`,
+     RETURNING id`,
     [id, name ?? null, description ?? null],
   )
   return result.rows[0] ?? null
@@ -28,7 +28,7 @@ export async function updateMatterTypeById(database, id, { name, description }) 
 
 export async function findMatterTypeById(database, id) {
   const result = await database.query(
-    `SELECT ${MATTER_TYPE_COLUMNS} FROM app.matter_types WHERE id = $1`,
+    `SELECT ${MATTER_TYPE_COLUMNS} FROM app.matter_type_template_summary WHERE id = $1`,
     [id],
   )
   return result.rows[0] ?? null
@@ -44,7 +44,7 @@ export async function findMatterTypesPage(database, { limit, offset }) {
      FROM total_types
      LEFT JOIN LATERAL (
        SELECT ${MATTER_TYPE_COLUMNS}
-       FROM app.matter_types
+       FROM app.matter_type_template_summary
        ORDER BY lower(name), id
        LIMIT $1 OFFSET $2
      ) AS page_types ON true
@@ -59,6 +59,10 @@ export async function findMatterTypesPage(database, { limit, offset }) {
       description: row.description,
       createdAt: row.createdAt,
       updatedAt: row.updatedAt,
+      templateRevision: row.templateRevision,
+      documentCount: row.documentCount,
+      keyDocumentCount: row.keyDocumentCount,
+      templateStatus: row.templateStatus,
     })),
   }
 }

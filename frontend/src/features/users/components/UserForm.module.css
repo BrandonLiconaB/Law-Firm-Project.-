@@ -51,6 +51,11 @@
   border-color: var(--color-danger);
 }
 
+.field input:disabled {
+  cursor: not-allowed;
+  background: var(--color-surface-tinted);
+}
+
 .helpText,
 .errorMessage {
   display: block;
@@ -100,8 +105,7 @@
     flex-direction: column;
   }
 
-  .actions button,
-  .actions a {
+  .actions > * {
     width: 100%;
   }
 }

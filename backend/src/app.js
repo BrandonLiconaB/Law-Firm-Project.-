@@ -12,6 +12,7 @@ import { createHealthRouter } from './modules/health/health.routes.js'
 import { createAuthRouter } from './modules/auth/auth.routes.js'
 import { createUsersRouter } from './modules/users/users.routes.js'
 import { createMatterTypesRouter } from './modules/matterTypes/matterTypes.routes.js'
+import { createTemplatesRouter } from './modules/templates/templates.routes.js'
 import { AppError } from './shared/AppError.js'
 
 function validateOrigin(origin, callback) {
@@ -50,6 +51,7 @@ export function createApp({ database = pool } = {}) {
   app.use('/api/health', createHealthRouter({ database }))
   app.use('/api/auth', createAuthRouter({ database }))
   app.use('/api/users', createUsersRouter({ database }))
+  app.use('/api/matter-types/:matterTypeId/template', createTemplatesRouter({ database }))
   app.use('/api/matter-types', createMatterTypesRouter({ database }))
 
   app.use(notFound)

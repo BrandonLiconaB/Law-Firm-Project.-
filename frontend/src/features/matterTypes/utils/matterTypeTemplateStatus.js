@@ -5,6 +5,7 @@ export const MATTER_TYPE_TEMPLATE_STATUSES = {
 }
 
 export function getMatterTypeTemplateStatus(matterType) {
+  if (matterType?.templateStatus) return matterType.templateStatus
   const documents = matterType?.documents ?? []
 
   if (documents.length === 0) {
@@ -16,6 +17,14 @@ export function getMatterTypeTemplateStatus(matterType) {
   }
 
   return MATTER_TYPE_TEMPLATE_STATUSES.READY
+}
+
+export function getTemplateDocumentCount(matterType) {
+  return matterType?.documentCount ?? matterType?.documents?.length ?? 0
+}
+
+export function getTemplateKeyCount(matterType) {
+  return matterType?.keyDocumentCount ?? matterType?.documents?.filter((document) => document.isKey).length ?? 0
 }
 
 export function isMatterTypeReady(matterType) {

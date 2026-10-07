@@ -14,7 +14,7 @@ before(async () => {
   server = await createServer({
     configFile: false,
     plugins: [react()],
-    server: { middlewareMode: true, hmr: false, watch: null },
+    server: { middlewareMode: true, hmr: false, ws: false, watch: null },
     optimizeDeps: { noDiscovery: true, include: [] },
   })
   const module = await server.ssrLoadModule('/src/features/matters/components/MatterPrintReport.jsx')

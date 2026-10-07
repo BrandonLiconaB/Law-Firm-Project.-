@@ -1,12 +1,15 @@
 import { useState } from 'react'
 import Button from '../../../components/ui/Button.jsx'
 import ButtonLink from '../../../components/ui/ButtonLink.jsx'
+import RequestFeedback from '../../../components/common/RequestFeedback.jsx'
+import { useAsyncAction } from '../../../hooks/useAsyncAction.js'
 import {
   cleanMatterTypeName,
   isMatterTypeNameDuplicate,
 } from '../utils/normalizeMatterTypeName.js'
 import {
   getMatterTypeTemplateStatus,
+  getTemplateDocumentCount,
   MATTER_TYPE_TEMPLATE_STATUSES,
 } from '../utils/matterTypeTemplateStatus.js'
 import styles from './MatterTypeForm.module.css'
@@ -23,8 +26,11 @@ function MatterTypeForm({
     initialMatterType?.description ?? '',
   )
   const [errors, setErrors] = useState({})
+  const action = useAsyncAction()
+  const fieldErrors = { ...action.error?.fields, ...errors }
 
   function clearFieldError(fieldName) {
+    action.clearError()
     setErrors((currentErrors) => {
       if (!currentErrors[fieldName]) {
         return currentErrors
@@ -36,13 +42,15 @@ function MatterTypeForm({
     })
   }
 
-  function handleSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault()
 
     const cleanedName = cleanMatterTypeName(name)
     const nextErrors = {}
 
-    if (!cleanedName) {
+    if (cleanedName.length > 120) {
+      nextErrors.name = 'Name cannot exceed 120 characters.'
+    } else if (!cleanedName) {
       nextErrors.name = 'Matter type name is required.'
     } else if (
       isMatterTypeNameDuplicate(
@@ -53,6 +61,7 @@ function MatterTypeForm({
     ) {
       nextErrors.name = 'This matter type name is already in use.'
     }
+    if (description.trim().length > 1000) nextErrors.description = 'Description cannot exceed 1000 characters.'
 
     if (Object.keys(nextErrors).length > 0) {
       setErrors(nextErrors)
@@ -60,39 +69,42 @@ function MatterTypeForm({
     }
 
     setErrors({})
-    onSubmit({
+    await action.run(() => onSubmit({
       name: cleanedName,
       description: description.trim(),
-    })
+    }))
   }
 
-  const documentCount = initialMatterType?.documents.length ?? 0
+  const documentCount = getTemplateDocumentCount(initialMatterType)
   const templateStatus = initialMatterType
     ? getMatterTypeTemplateStatus(initialMatterType)
     : MATTER_TYPE_TEMPLATE_STATUSES.TEMPLATE_REQUIRED
 
   return (
-    <form className={styles.form} noValidate onSubmit={handleSubmit}>
+    <form className={styles.form} noValidate onSubmit={handleSubmit} aria-busy={action.isPending}>
+      <RequestFeedback error={action.error} />
       <div className={styles.field}>
         <label htmlFor="matter-type-name">Name</label>
         <input
           id="matter-type-name"
           type="text"
+          disabled={action.isPending}
+          maxLength={120}
           value={name}
           placeholder="Example: Family Petition"
           autoComplete="off"
           aria-describedby={
-            errors.name ? 'matter-type-name-error' : 'matter-type-name-help'
+            fieldErrors.name ? 'matter-type-name-error' : 'matter-type-name-help'
           }
-          aria-invalid={Boolean(errors.name)}
+          aria-invalid={Boolean(fieldErrors.name)}
           onChange={(event) => {
             setName(event.target.value)
             clearFieldError('name')
           }}
         />
-        {errors.name ? (
+        {fieldErrors.name ? (
           <small id="matter-type-name-error" className={styles.errorMessage}>
-            {errors.name}
+            {fieldErrors.name}
           </small>
         ) : (
           <small id="matter-type-name-help" className={styles.helpText}>
@@ -108,10 +120,14 @@ function MatterTypeForm({
         <textarea
           id="matter-type-description"
           rows="4"
+          disabled={action.isPending}
+          maxLength={1000}
+          aria-invalid={Boolean(fieldErrors.description)}
           value={description}
           placeholder="Briefly describe when this matter type is used."
-          onChange={(event) => setDescription(event.target.value)}
+          onChange={(event) => { setDescription(event.target.value); clearFieldError('description') }}
         />
+        {fieldErrors.description && <small className={styles.errorMessage}>{fieldErrors.description}</small>}
       </div>
 
       <div className={styles.templateInformation}>
@@ -132,8 +148,8 @@ function MatterTypeForm({
       </div>
 
       <div className={styles.actions}>
-        <Button type="submit">{submitLabel}</Button>
-        <ButtonLink to={cancelTo} variant="secondary">
+        <Button type="submit" disabled={action.isPending}>{action.isPending ? 'Saving…' : submitLabel}</Button>
+        <ButtonLink to={cancelTo} variant="secondary" disabled={action.isPending}>
           Cancel
         </ButtonLink>
       </div>

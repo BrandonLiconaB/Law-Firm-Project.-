@@ -2,78 +2,6 @@
   width: 100%;
 }
 
-.notice {
-  margin-bottom: 18px;
-  padding: 12px 15px;
-  color: var(--color-success-strong);
-  font-size: 0.78rem;
-  font-weight: 700;
-  background: var(--color-success-soft);
-  border: 1px solid var(--color-success-border);
-  border-radius: 11px;
-  box-shadow: var(--shadow-small);
-}
-
-.previewNotice {
-  margin: -22px 22px 0;
-  position: relative;
-  z-index: 2;
-  padding: 14px 16px;
-  color: var(--color-accent-hover);
-  font-size: 0.76rem;
-  font-weight: 700;
-  background: rgb(255 255 255 / 98%);
-  border: 1px solid var(--color-cyan-border);
-  border-radius: 13px;
-  box-shadow: 0 12px 28px rgb(16 34 59 / 10%);
-}
-
-.searchPanel {
-  margin-top: 28px;
-  padding: 20px;
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: 18px;
-  box-shadow: var(--shadow-medium);
-}
-
-.searchPanel label {
-  display: block;
-  margin-bottom: 7px;
-  color: var(--color-text-muted);
-  font-size: 0.72rem;
-  font-weight: 750;
-}
-
-.searchPanel input {
-  width: min(100%, 560px);
-  min-height: 46px;
-  padding: 10px 13px;
-  color: var(--color-text);
-  background: var(--color-surface-tinted);
-  border: 1px solid var(--color-border-strong);
-  border-radius: 11px;
-  transition:
-    background-color 160ms ease,
-    border-color 160ms ease,
-    box-shadow 160ms ease;
-}
-
-.searchPanel input::placeholder {
-  color: var(--color-text-soft);
-}
-
-.searchPanel input:hover {
-  background: var(--color-surface);
-  border-color: var(--color-border-hover);
-}
-
-.searchPanel input:focus {
-  background: var(--color-surface);
-  border-color: var(--color-accent);
-  box-shadow: var(--focus-ring);
-}
-
 .resultsHeader {
   display: flex;
   align-items: center;
@@ -168,22 +96,65 @@
 
 .userIdentity strong {
   color: var(--color-text);
+  overflow-wrap: anywhere;
 }
 
-.editLink,
+.adminLabel {
+  display: block;
+  margin-top: 4px;
+  color: var(--color-teal-strong);
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.passwordStatus {
+  display: inline-block;
+  padding: 5px 9px;
+  color: var(--color-success-strong);
+  font-size: 0.7rem;
+  font-weight: 700;
+  background: var(--color-success-soft);
+  border: 1px solid var(--color-success-border);
+  border-radius: 8px;
+}
+
+.passwordStatus.required {
+  color: var(--color-warning-strong);
+  background: var(--color-warning-soft);
+  border-color: var(--color-warning-border);
+}
+
+.pagination {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.pagination p {
+  color: var(--color-text-muted);
+  font-size: 0.78rem;
+}
+
+.tableWrapper td {
+  overflow-wrap: anywhere;
+}
+
+.viewLink,
 .cardAction {
   color: var(--color-accent-strong);
   font-weight: 750;
 }
 
-.editLink {
+.viewLink {
   padding: 6px 9px;
   font-size: 0.76rem;
   background: var(--color-accent-soft);
   border-radius: 8px;
 }
 
-.editLink:hover {
+.viewLink:hover {
   background: var(--color-accent-soft-hover);
 }
 
@@ -217,26 +188,7 @@
   margin-top: 16px;
 }
 
-.sessionNote {
-  margin-top: 18px;
-  color: var(--color-text-soft);
-  font-size: 0.72rem;
-  text-align: right;
-}
-
 @media (max-width: 760px) {
-  .previewNotice {
-    margin: 16px 0 0;
-  }
-
-  .searchPanel {
-    margin-top: 20px;
-  }
-
-  .searchPanel input {
-    width: 100%;
-  }
-
   .tableWrapper {
     display: none;
   }
@@ -273,6 +225,7 @@
 
   .cardIdentity h2 {
     font-size: 0.95rem;
+    overflow-wrap: anywhere;
   }
 
   .cardIdentity p {
@@ -293,7 +246,8 @@
     border-radius: 10px;
   }
 
-  .sessionNote {
-    text-align: left;
+  .userCard > .passwordStatus {
+    margin-top: 16px;
   }
+
 }

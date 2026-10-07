@@ -1,4 +1,5 @@
 import { pool } from '../../db/pool.js'
+import { withTransaction } from '../../db/transaction.js'
 import { AppError } from '../../shared/AppError.js'
 import { createMatterTypeSchema, updateMatterTypeSchema } from './matterType.validation.js'
 import {
@@ -31,7 +32,10 @@ function rethrowWriteError(error) {
 export async function createMatterType(input, database = pool) {
   const matterType = createMatterTypeSchema.parse(input)
   try {
-    return await insertMatterType(database, matterType)
+    return await withTransaction(async (client) => {
+      const created = await insertMatterType(client, matterType)
+      return findMatterTypeById(client, created.id)
+    }, database)
   } catch (error) {
     rethrowWriteError(error)
   }
@@ -40,9 +44,11 @@ export async function createMatterType(input, database = pool) {
 export async function updateMatterType(id, input, database = pool) {
   const changes = updateMatterTypeSchema.parse(input)
   try {
-    const matterType = await updateMatterTypeById(database, id, changes)
-    if (!matterType) throw matterTypeNotFoundError()
-    return matterType
+    return await withTransaction(async (client) => {
+      const matterType = await updateMatterTypeById(client, id, changes)
+      if (!matterType) throw matterTypeNotFoundError()
+      return findMatterTypeById(client, id)
+    }, database)
   } catch (error) {
     rethrowWriteError(error)
   }

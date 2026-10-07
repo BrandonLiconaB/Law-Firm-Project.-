@@ -18,15 +18,15 @@ function EditMatterTypePage() {
       <PlaceholderPage
         eyebrow="Matter types"
         title="Matter type not found"
-        description="The requested matter type does not exist in the preview catalog."
+        description="The requested matter type does not exist in the catalog."
         backTo="/admin/matter-types"
         backLabel="Back to matter types"
       />
     )
   }
 
-  function handleUpdateMatterType(matterTypeData) {
-    const updatedMatterType = updateMatterType(matterType.id, matterTypeData)
+  async function handleUpdateMatterType(matterTypeData) {
+    const updatedMatterType = await updateMatterType(matterType.id, matterTypeData)
 
     if (!updatedMatterType) {
       return
@@ -34,7 +34,7 @@ function EditMatterTypePage() {
 
     navigate('/admin/matter-types', {
       state: {
-        notice: 'Matter type updated for this preview session.',
+        notice: 'Matter type saved to the database.',
       },
     })
   }
@@ -59,7 +59,7 @@ function EditMatterTypePage() {
       />
 
       <p className={styles.sessionNote}>
-        Existing matter document lists remain unchanged.
+        Renaming this category preserves its identifier and template definitions.
       </p>
     </section>
   )
