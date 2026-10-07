@@ -139,6 +139,52 @@ for (const [databaseName, connectionString] of databases) {
         (SELECT count(*)::integer FROM app.template_documents WHERE retired_at IS NOT NULL) AS "retiredDocuments"
     `)
 
+    const matterColumns = await client.query(`
+      SELECT table_name, column_name, data_type, is_nullable, column_default, character_maximum_length
+      FROM information_schema.columns
+      WHERE table_schema = 'app'
+        AND table_name IN ('matters', 'matter_sections', 'matter_documents', 'matter_status_history')
+      ORDER BY table_name, ordinal_position
+    `)
+    const matterIndexes = await client.query(`
+      SELECT tablename, indexname, indexdef FROM pg_indexes
+      WHERE schemaname = 'app'
+        AND tablename IN ('matters', 'matter_sections', 'matter_documents', 'matter_status_history')
+      ORDER BY tablename, indexname
+    `)
+    const matterConstraints = await client.query(`
+      SELECT c.conrelid::regclass::text AS "tableName", c.conname AS name,
+        pg_get_constraintdef(c.oid) AS definition
+      FROM pg_constraint c
+      WHERE c.conrelid IN ('app.matters'::regclass, 'app.matter_sections'::regclass,
+        'app.matter_documents'::regclass, 'app.matter_status_history'::regclass)
+      ORDER BY c.conrelid::regclass::text, c.conname
+    `)
+    const matterTriggers = await client.query(`
+      SELECT event_object_table AS "tableName", trigger_name AS name
+      FROM information_schema.triggers
+      WHERE event_object_schema = 'app'
+        AND event_object_table IN ('matters', 'matter_sections', 'matter_documents', 'matter_status_history')
+      ORDER BY event_object_table, trigger_name
+    `)
+    const matterPublicPrivileges = await client.query(`
+      SELECT c.relname AS "tableName", acl.privilege_type AS privilege
+      FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
+      CROSS JOIN LATERAL aclexplode(COALESCE(c.relacl, acldefault('r', c.relowner))) acl
+      WHERE n.nspname = 'app' AND acl.grantee = 0
+        AND c.relname IN ('matters', 'matter_sections', 'matter_documents', 'matter_status_history')
+      ORDER BY c.relname, acl.privilege_type
+    `)
+    const matterCounts = await client.query(`
+      SELECT
+        (SELECT count(*)::integer FROM app.matters) AS matters,
+        (SELECT count(*)::integer FROM app.matter_sections WHERE retired_at IS NULL) AS "currentSections",
+        (SELECT count(*)::integer FROM app.matter_sections WHERE retired_at IS NOT NULL) AS "retiredSections",
+        (SELECT count(*)::integer FROM app.matter_documents WHERE retired_at IS NULL) AS "currentDocuments",
+        (SELECT count(*)::integer FROM app.matter_documents WHERE retired_at IS NOT NULL) AS "retiredDocuments",
+        (SELECT count(*)::integer FROM app.matter_status_history) AS "statusEvents"
+    `)
+
     console.log(
       JSON.stringify({
         database: databaseName,
@@ -170,6 +216,14 @@ for (const [databaseName, connectionString] of databases) {
           indexes: templateIndexes.rows,
           constraints: templateConstraints.rows,
           triggers: templateTriggers.rows,
+        },
+        matters: {
+          counts: matterCounts.rows[0],
+          columns: matterColumns.rows,
+          indexes: matterIndexes.rows,
+          constraints: matterConstraints.rows,
+          triggers: matterTriggers.rows,
+          publicPrivileges: matterPublicPrivileges.rows,
         },
       }),
     )

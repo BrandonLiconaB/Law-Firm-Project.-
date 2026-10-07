@@ -368,3 +368,32 @@ restablecimiento de credenciales ficticias se probaron mediante la API aislada,
 no modificando cuentas reales desde el navegador. Al terminar, la base de pruebas
 quedó sin usuarios, sesiones ni contadores ficticios, y el administrador de
 desarrollo permaneció intacto.
+
+## 12. Matters: base de datos creada, conexión pendiente
+
+El bloque 1 de matters añade estructura PostgreSQL, no funcionalidad a React.
+Las pantallas de matters siguen pendientes de conexión; todavía no debes buscar
+un servicio HTTP de matters ni una sincronización real de plantillas en este
+frontend. No se cambian componentes, rutas, estilos, dependencias ni mocks.
+
+Para entender cómo se prepara la información que consumirán esas pantallas:
+
+1. Lee la sección **Base de datos de matters — bloque 1** en `../backend/README.md`.
+2. Abre `../backend/src/db/migrations/007_create_matters.js`: `matters` guarda
+   número y flujo; `matter_sections` organiza el checklist; `matter_documents`
+   separa la definición de su recepción; `matter_status_history` conserva cambios
+   de estado o modo.
+3. Revisa `../backend/tests/integration/matterSchema.test.js`. Son ejemplos SQL
+   del modelo, siempre revertidos en la base aislada; no peticiones de React.
+4. Consulta `../backend/scripts/verifyDatabases.js` para ver cómo se comprueba la
+   estructura sin mostrar credenciales ni datos de matters.
+
+La distinción importante es **definición frente a seguimiento**: la plantilla
+define un documento y su UUID; cada matter tendrá su propia copia con estado,
+cantidad y comentario. Los futuros servicios harán que cambiar la definición
+conserve ese seguimiento. La migración por sí sola todavía no sincroniza nada.
+
+Verificación de este bloque: 233 pruebas aprobadas (148 del backend y 85 del
+frontend, incluidas las de conexión), lint de ambos proyectos y compilación del
+frontend. Las tablas nuevas quedaron vacías en desarrollo y pruebas, sin
+modificar el administrador real ni dejar datos ficticios en la base aislada.

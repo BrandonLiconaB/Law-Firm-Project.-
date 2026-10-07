@@ -4,7 +4,9 @@ API interna construida con Node.js 24, Express 5 y PostgreSQL. La base actual
 incluye el servidor, conexiones PostgreSQL, transacciones, gestión de usuarios
 por el administrador, catálogo de matter types y sus plantillas de documentos,
 protección y recuperación de contraseñas y autenticación con sesiones.
-Los matters y la conexión con React se implementarán en los siguientes bloques.
+Autenticación, usuarios y catálogo de plantillas ya están conectados con React.
+La estructura PostgreSQL de matters está creada; su API, sincronización de
+plantillas y conexión con React se implementarán en los siguientes bloques.
 
 ## Requisitos
 
@@ -34,16 +36,18 @@ http://localhost:3000/api/health
 - `npm start`: inicia el servidor sin observación.
 - `npm test`: ejecuta pruebas unitarias y HTTP sin conectarse a PostgreSQL real.
 - `npm run test:integration`: prueba autenticación, contraseñas, usuarios,
-  matter types y plantillas contra la base aislada configurada en `TEST_DATABASE_URL`,
-  creando y eliminando cuentas y registros temporales.
+  matter types, plantillas y estructura de matters contra la base aislada
+  configurada en `TEST_DATABASE_URL`. Los datos temporales se eliminan o revierten
+  según la suite; nunca se utiliza la base de desarrollo.
 - `npm run test:watch`: vuelve a ejecutar pruebas cuando cambia un archivo.
 - `npm run lint`: revisa la calidad estática del código.
 - `npm run migrate`: aplica migraciones en `gestor_documental_dev`.
 - `npm run migrate:down`: revierte una migración de desarrollo.
 - `npm run migrate:test`: aplica migraciones en `gestor_documental_test`.
 - `npm run migrate:create -- nombre`: crea el archivo para una migración futura.
-- `npm run db:verify`: verifica esquemas, funciones y migraciones en ambas bases
-  sin mostrar credenciales.
+- `npm run db:verify`: verifica esquemas, funciones, migraciones y estructura de
+  tablas en ambas bases. Incluye contadores de matters sin mostrar sus datos ni
+  credenciales.
 - `npm run admin:create`: crea interactivamente el único administrador inicial.
 - `npm run admin:reset-password`: recupera interactivamente la contraseña del
   administrador existente; no crea una cuenta nueva.
@@ -381,9 +385,160 @@ Errores específicos: `404 MATTER_TYPE_NOT_FOUND`,
 `fields.name`; una sección inválida incluye `fields.sectionId`. Se reutilizan
 los controles de sesión, permisos, origen, CSRF, JSON y `400 INVALID_INPUT`.
 
-Este bloque guarda definiciones, no archivos, estados de entrega, cantidades
-recibidas ni comentarios de matters. La conservación de UUID y filas retiradas
-prepara la sincronización futura; el backend aún no tiene matters que sincronizar.
+El módulo de plantillas guarda definiciones, no archivos ni información de
+recepción. La conservación de UUID y filas retiradas prepara la sincronización
+futura. Las tablas de matters descritas a continuación ya existen, pero todavía
+no hay API de matters ni sincronización automática con estas definiciones.
+
+## Base de datos de matters — bloque 1
+
+Este bloque crea únicamente la estructura y sus pruebas. No añade rutas,
+servicios de negocio, pantallas ni matters reales. Tampoco cambia los datos de
+usuarios, tipos o plantillas existentes.
+
+Una plantilla define **qué se pide**; `matter_documents` guarda **qué se pidió
+para un matter y qué se recibió**. Su UUID de definición permite distinguir una
+edición del mismo documento de otro documento nuevo que reutilice su nombre.
+
+| Tabla | Responsabilidad |
+| --- | --- |
+| `app.matters` | Número, tipo, estado, modo automático/manual, revisión de plantilla, versión y responsables de creación/modificación. |
+| `app.matter_sections` | Copias de secciones de la plantilla para cada matter, con su orden y posible fecha de retiro. |
+| `app.matter_documents` | Copias de requisitos con estado de recepción, cantidad, comentario y datos de archivo. |
+| `app.matter_status_history` | Eventos de estado o modo, con usuario, fecha y motivo técnico. No contiene notas legales. |
+
+### Identidad y relaciones
+
+`matter_name` es texto obligatorio de exactamente seis dígitos ASCII y único en
+toda la aplicación. Por ejemplo, `001234` es válido y conserva sus ceros. No se
+guarda un nombre de cliente ni se crea una tabla de clientes. El UUID interno
+permanece igual cuando más adelante se corrija ese número.
+
+Cada matter pertenece a un matter type. Sus secciones y documentos guardan
+también ese tipo para que claves foráneas compuestas comprueben que proceden de
+la plantilla correcta. Un documento no puede referenciar una sección de otro
+matter, aunque ambos tengan el mismo tipo. `section_id = null` representa
+**General**, sin crear una sección artificial.
+
+Solo puede existir una copia de cada UUID de definición por matter, incluidos
+los documentos retirados. Una definición nueva con el mismo nombre tendrá un
+UUID distinto y podrá generar una copia nueva. Se añade a `template_documents`
+una restricción única auxiliar `(matter_type_id, id)` para permitir esta
+comprobación; no se cambian sus datos ni sus identificadores.
+
+Las relaciones usan `ON DELETE RESTRICT` para impedir borrados accidentales de
+usuarios, definiciones o matters referenciados. Esto no bloquea ediciones por
+estado del matter. La futura operación administrativa de cambio de tipo deberá
+reemplazar el checklist dentro de una transacción, conservando el historial.
+
+### Estados y cantidades
+
+Los ocho estados del matter son:
+
+- `Pending Documents`
+- `Ready to Start Drafting`
+- `Ready to Draft`
+- `Ready to R/S`
+- `Pending Corrections`
+- `Corrections Ready`
+- `Accepted`
+- `Sent`
+
+`status_source` admite `Automatic` o `Manual`. La base solo permite los primeros
+tres estados en modo automático. No calcula aún cuál corresponde: esa lógica
+pertenecerá al servicio de matters. El estado inicial es `Pending Documents`
+con modo `Automatic`.
+
+Los documentos admiten `Pending`, `Received`, `Client Does Not Have` y
+`Not Applicable`. Su cantidad esperada es un entero positivo o `null`; la
+recibida es un entero no negativo o `null`. **No hay una restricción que obligue
+a alcanzar la cantidad esperada para marcar Received.** Tampoco se impide editar
+documentos cuando el matter está Accepted o Sent. Los comentarios pueden estar
+vacíos y no se almacenan archivos.
+
+Las copias conservan nombre, descripción, condición de documento clave,
+cantidad esperada, sección y posición. `retired_at` permite separar requisitos
+actuales de anteriores; al archivar un documento se exige conservar
+`previous_section_name`. El bloque de sincronización posterior implementará
+esas operaciones y la conservación de la recepción durante cambios de plantilla.
+
+### Fechas, versiones e historial
+
+Los triggers reutilizan `app.set_updated_at()` para modificar la fecha de la
+fila en `matters`, `matter_sections` y `matter_documents`. No modifican por su
+cuenta el estado, su fecha ni la versión del matter.
+
+En documentos, `tracking_updated_at` y `tracking_updated_by` se reservan para
+la recepción, cantidad y comentario. Así, actualizar una definición no tendrá
+que aparentar una nueva entrega del usuario. El responsable de tracking puede
+ser `null` al inicializar una copia; las escrituras de usuarios lo asignarán en
+el futuro servicio.
+
+`template_revision` indica la revisión aplicada al matter y comienza en cero.
+`version` comienza en uno y prepara el control de ediciones simultáneas. La API
+futura deberá comparar e incrementar esa versión: crear la columna no implementa
+todavía la protección frente a conflictos.
+
+El historial admite estos motivos técnicos, generados por el sistema, no
+comentarios obligatorios:
+
+- `Matter created`
+- `Document updated`
+- `Template updated`
+- `Matter type changed`
+- `Manual status selected`
+- `Automatic mode enabled`
+
+Puede registrar un cambio de modo aunque el estado siga igual. Se exige un
+cambio efectivo de estado o modo, salvo en creación y cambio de tipo. El evento
+inicial solo puede ser de creación hacia Pending Documents/Automatic y puede
+existir como máximo uno por matter. Las restricciones validan formatos y
+combinaciones básicas; el futuro servicio deberá insertar los eventos correctos
+junto con cada operación. No existe aún un trigger que cree historial ni una
+API que permita modificarlo.
+
+### Qué queda para los siguientes bloques
+
+La base valida relaciones, unicidad, formatos y valores permitidos. No valida
+que una plantilla tenga al menos un documento clave al crear un matter: esa
+regla requiere consultar varias filas y se implementará en el servicio. No se
+añade un bloqueo a matters existentes si su plantilla deja de estar lista.
+
+También quedan pendientes la API, permisos de edición, paginación, cálculo de
+estados, sincronización de plantillas, incremento de versiones, transacciones de
+cambio de tipo y conexión con React. No se activa ni elimina el código provisional
+del frontend en este bloque.
+
+Se incluyen índices para listados por fecha, tipo o estado, secciones y
+documentos actuales, requisitos retirados e historial. Se revoca el acceso de
+`PUBLIC` a las cuatro tablas nuevas, como en los módulos anteriores.
+
+### Archivos y orden de lectura
+
+1. `src/db/migrations/007_create_matters.js`: lee primero `matters`, después
+   `matter_sections`, `matter_documents` y `matter_status_history`. Sigue con
+   índices, triggers y comentarios; `down` deshace la estructura en orden inverso.
+2. `tests/integration/matterSchema.test.js`: sus 26 pruebas muestran ejemplos
+   permitidos y rechazados, conservación de cantidades y metadatos, archivo,
+   relaciones y un reemplazo de tipo simulado mediante SQL. No son una API.
+3. `scripts/verifyDatabases.js`: incorpora metadatos, contadores, índices,
+   restricciones, triggers y comprobación de permisos públicos de estas tablas.
+4. Este README y `../frontend/GUIA_DE_LECTURA.md`: documentan el alcance real y
+   distinguen la estructura creada de las funcionalidades todavía pendientes.
+
+Las pruebas nuevas abren una transacción por comprobación y siempre ejecutan
+`ROLLBACK`. Comparan los contadores con su valor inicial; no vacían tablas. La
+reversión `down` y reaplicación `up` se prueban exclusivamente dentro de una
+transacción de la base aislada, que después se revierte. No se ejecuta `down`
+sobre la base de desarrollo.
+
+Verificación del bloque: 38 pruebas unitarias y 110 de integración del backend,
+71 pruebas del frontend y 14 de conexión frontend/API: **233 aprobadas**. También
+pasaron lint de ambos proyectos, compilación del frontend y comprobación del
+diff. La migración `007_create_matters` quedó aplicada en desarrollo y pruebas;
+las cuatro tablas nuevas quedaron vacías en ambas bases. La cuenta
+administrativa de desarrollo se conservó y no quedaron usuarios, sesiones ni
+contadores temporales en la base aislada.
 
 ## PostgreSQL local
 
@@ -674,7 +829,13 @@ documento a sección asegura que ambos pertenezcan al mismo tipo. Las cantidades
 son enteros positivos o nulas y las fechas se actualizan mediante triggers.
 La vista `app.matter_type_template_summary` deriva contadores y estado de los
 documentos actuales. Se revoca el acceso público y no se insertan ejemplos.
-Todavía no se crean tablas de matters ni datos de recepción de documentos.
+
+La séptima migración crea `app.matters`, `app.matter_sections`,
+`app.matter_documents` y `app.matter_status_history`. Añade relaciones compuestas,
+validación del número de seis dígitos, estados y cantidades, índices, fechas y
+revocación de acceso público. La sección **Base de datos de matters — bloque 1**
+detalla sus campos y los límites de este bloque. No inserta datos de ejemplo ni
+implementa servicios de recepción o sincronización.
 
 Cada migración incluye `up` y `down`. `up` aplica el cambio. `down` existe para
 corregir el desarrollo, pero no debe utilizarse improvisadamente sobre datos de
@@ -856,7 +1017,7 @@ la base de pruebas no termina en `_test`.
 Las pruebas usan credenciales ficticias y eliminan sus usuarios temporales al
 terminar; sus sesiones se eliminan en cascada. La base de pruebas se reserva
 para estas comprobaciones y no necesita un administrador permanente.
-Las suites se ejecutan en secuencia porque cada una crea un administrador
+Las suites se ejecutan en secuencia porque varias crean un administrador
 temporal y la base admite solamente uno. El helper `testDatabase.js` comparte
 la validación de configuración y la creación del pool aislado.
 
@@ -886,6 +1047,13 @@ durante una escritura no confirmada y reversión cuando falla el incremento de
 revisión. Solo eliminan físicamente sus propias definiciones de prueba,
 después sus secciones y finalmente los tipos que crearon. No tocan los datos
 ni la cuenta administrativa de desarrollo.
+
+Las 26 pruebas de `matterSchema.test.js` comprueban directamente la estructura
+PostgreSQL: formatos, referencias, estados, cantidades, metadatos de recepción,
+requisitos retirados, eventos de estado, índices y permisos. Usan transacciones
+siempre revertidas, incluso para comprobar `down`/`up`, y verifican que los
+contadores finales coincidan con los iniciales. No sustituyen las futuras pruebas
+de la API ni de sincronización de matters.
 
 ## Preparación del despliegue
 
